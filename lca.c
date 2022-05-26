@@ -12,7 +12,7 @@
 int RMQ_ST(int* in_array, int i, int j, int n){ // < O(n log n), O(1) >
 
     //boundary check
-    if (i < 0 || j >= n) exit(0);
+    if (i < 0 || j >= n || j < i) return -1;
 
     //sparse table declaration & initialization
     int** st;
@@ -58,19 +58,15 @@ int RMQ_ST(int* in_array, int i, int j, int n){ // < O(n log n), O(1) >
 
 
 int PlusMinusOne_RMQ(int* in_array, int i, int j, int n){ // < O(n), O(1) >
-    //let's assume for now that log2(n) produces an integer, and assume an array full of complete blocks
 
     //boundary check
-    if (i < 0 || j >= n) exit(0);
+    if (i < 0 || j >= n || j < i) return -1;
 
     //definitions (assuming that the first block is B0)
-    int num_blocks = (int)(n/(log2(n)/2));
-    int b = (floor(log2(n)))/2; //this should be ceil(log2(n)/2)
-    //int b = ceil(log2(n)/2);
-    float specific_block_i = (i/((floor(log2(n)))/2)); //not sure about the floor function
-    float specific_block_j = (j/((floor(log2(n)))/2)); //not sure about the floor function
-    int block_i = (int)((i/((floor(log2(n)))/2))); //not sure about the floor function
-    int block_j = (int)((j/((floor(log2(n)))/2))); //not sure about the floor function
+    int b = ceil((double)(log2(n)/2));
+    int num_blocks = ceil(n/(double)b);
+    int block_i = (i/b);
+    int block_j = (j/b);
     int block_i_end = ((block_i+1)*b)-1;
     int block_j_start = ((block_j+1)*b)-b;
 
@@ -80,8 +76,6 @@ int PlusMinusOne_RMQ(int* in_array, int i, int j, int n){ // < O(n), O(1) >
     printf("j = %d\n", j);
     printf("b = %d\n", b);
     printf("there are %d blocks\n", num_blocks);
-    printf("specific block i = %f\n", specific_block_i);
-    printf("specific block j = %f\n", specific_block_j);
     printf("i is in block B%d\n", block_i);
     printf("j is in block B%d\n", block_j);
     printf("the block which contains i ends at index %d\n", block_i_end);
@@ -134,9 +128,9 @@ int PlusMinusOne_RMQ(int* in_array, int i, int j, int n){ // < O(n), O(1) >
         }
     }
 
+    //construction of O(b^2) tables
     char* temp; //maybe do the string to long converion myself so that I don't need this temp variable
     long z;
-
     char** normalized_array = (char**)malloc((num_blocks) * sizeof(char));
     for (int v = 0; v < num_blocks; v++){
         normalized_array[v] = (char*)malloc((b-1) * sizeof(char));
@@ -144,17 +138,17 @@ int PlusMinusOne_RMQ(int* in_array, int i, int j, int n){ // < O(n), O(1) >
     long* signatures = (long*)malloc(num_blocks * sizeof(long));
     for (int j = 0; j < num_blocks; j++){
         for (int l = 0; l < b-1; l++){
-            if (in_array[(b*j)+l] < in_array[(b*j)+l+1]) normalized_array[j][l] = '1';
+            if (((b*j)+l) < n && ((b*j)+l+1) < n && in_array[(b*j)+l] < in_array[(b*j)+l+1]) normalized_array[j][l] = '1';
             else normalized_array[j][l] = '0';
         }
-        z = strtol(normalized_array[j], &temp, 2); //store this in an array of size num_blocks
+        z = strtol(normalized_array[j], &temp, 2); //store integer representation of binary sequence in signatures array
         signatures[j] = z;
         for (int k = 1; k < b+1; k++){
             t[z][k][k] = k;
         }
         for (int k = 0; k < b+1; k++){
             for (int w = k+1; w < b+1; w++){
-                if (in_array[(b*j)+(t[z][k][w-1])] < in_array[(b*j)+w]) t[z][k][w] = t[z][k][w-1];
+                if ((b*j)+(t[z][k][w-1]) < n && ((b*j)+w) < n && in_array[(b*j)+(t[z][k][w-1])] < in_array[(b*j)+w]) t[z][k][w] = t[z][k][w-1];
                 else t[z][k][w] = w;
             }
         }
@@ -170,17 +164,28 @@ int PlusMinusOne_RMQ(int* in_array, int i, int j, int n){ // < O(n), O(1) >
     //if i and j are in different blocks
     if (block_i != block_j){
         //find min of i to the end of its block
-        int suffix_min = (b*block_i) + t[signatures[block_i]][block_i_end-i-1][b-1];
+        int suffix_min = (b*block_i) + t[signatures[block_i]][i-(block_i_end-b+1)][b-1];
         printf("suffix_min = %d\n", suffix_min);
 
         //find the min of all the blocks in between i's block and j's block
-        int range_min;
-        int k = floor(log2(block_j-block_i+1));
-        /*if (min_array[st[block_i+1][k]] <= min_array[st[block_j-(1<<k)+1][k]]) range_min = st[block_i+1][k];
-        else range_min = st[block_j-(1<<k)+1][k];
-        range_min = (range_min*b) + index_array[range_min];*/
-        if (min_array[st[block_i+1][k]] <= min_array[st[block_j-(1<<k)+1][k]]) range_min = (st[block_i+1][k]*b)+index_array[st[block_i+1][k]];
-        else range_min = (st[block_j-(1<<k)+1][k]*b)+index_array[st[block_j-(1<<k)+1][k]];
+        int range_min, k;
+        ((block_j-1)-(block_i+1) == 0) ? (k = 0) : (k = floor(log2((block_j-1)-(block_i+1))));
+
+        if (min_array[st[block_i+1][k]] <= min_array[st[block_j-1-(1<<k)+1][k]]){
+            //range_min = index_array[st[block_i+1][k]];
+            //printf("range_min is in block %d, index %d\n", st[block_i+1][k], range_min);
+            //printf("range_min is in block starting at index %d\n", ((st[block_i+1][k])*b));
+            //printf("range_min = %d\n", ((st[block_i+1][k])*b)+(index_array[st[block_i+1][k]]));
+            range_min = ((st[block_i+1][k])*b)+(index_array[st[block_i+1][k]]);
+        }
+        else{
+            //range_min = index_array[st[block_j-1-(1<<k)+1][k]];
+            //printf("range_min is in block %d, index %d\n", st[block_j-1-(1<<k)+1][k], range_min);
+            //printf("range_min is in block starting at index %d\n", ((st[block_j-1-(1<<k)+1][k])*b));
+            //printf("range_min = %d\n", ((st[block_j-1-(1<<k)+1][k])*b)+(index_array[st[block_j-1-(1<<k)+1][k]]));
+            range_min = ((st[block_j-1-(1<<k)+1][k])*b)+(index_array[st[block_j-1-(1<<k)+1][k]]);
+        }
+
         printf("range_min = %d\n", range_min);
 
         //find the min from j to the beginning of its block
@@ -218,13 +223,17 @@ int main(){
 
     int test1[] = {-1,0,1,2,3,2,1,2,3,2,3,4,3,2,1,0};
     int test2[] = {0,1,2,3,4,5,6,7,8,7,8,9,10,11,10,9,10,9,8,7,6,7,8,7,8,9,10,11,10,9,8,7,6,5,4,3,2,1,0,1,0,1,2,3,4,5,6,7,8,7,8,9,10,11,10,9,10,9,8,7,6,7,8,7,8,9,10,11,10,9,8,7,6,5,4,3,2,1,0,1,0,1,2,3,4,5,6,7,8,7,8,9,10,11,10,9,10,9,8,7,6,7,8,7,8,9,10,11,10,9,8,7,6,5,4,3,2,1,0,1,0,1,2,3,4,5,6,7,8,7,8,9,10,11,10,9,10,9,8,7,6,7,8,7,8,9,10,11,10,9,8,7,6,5,4,3,2,1,0,1,0,1,2,3,4,5,6,7,8,7,8,9,10,11,10,9,10,9,8,7,6,7,8,7,8,9,10,11,10,9,8,7,6,5,4,3,2,1,0,1,0,1,2,3,4,5,6,7,8,7,8,9,10,11,10,9,10,9,8,7,6,7,8,7,8,9,10,11,10,9,8,7,6,5,4,3,2,1,0,1,0,1,2,3,4,5,6,7,6,5,4,3,2,1,0,-1};
+    int test3[] = {0,1,2,3,4,5,6,7,8,7,8,9,10,11,10,9,10,9,8,7,6,7,8,7,8,9,10,11,10,9,8,7,6,5,4,3,2,1,0,1,0,1,2,3,4,5,6,7,8,7,8,9,10,11,10,9,10,9,8,7,6,7,8,7,8,9,10,11,10,9,8,7,6,5,4,3,2,1,0,1,0,1,2,3,4,5,6,7,8,7,8,9,10,11,10,9,10,9,8,7,6,7,8,7,8,9,10,11,10,9,8,7,6,5,4,3,2,1,0,1,0,1,2,3,4,5,6,7,8,7,8,9,10,11,10,9,10,9,8,7,6,7,8,7,8,9,10,11,10,9,8,7,6,5,4,3,2,1,0,1,0,1,2,3,4,5,6,7,8,7,8,9,10,11,10,9,10,9,8,7,6,7,8,7,8,9,10,11,10,9,8,7,6,5,4,3,2,1,0,1,0,1,2,3,4,5,6,7,8,7,8,9,10,11,10,9,10,9,8,7,6,7,8,7,8,9,10,11,10,9,8,7,6,5,4,3,2,1,0,1,0,1,2,3,4,5,6,5,4,3,2,1,0,-1,-2};
     //int min = RMQ_ST(test1, 4, 8, sizeof(test1)/sizeof(*test1));
-    //int min = RMQ_ST(test2, 18, 42, sizeof(test2)/sizeof(*test2));
-    //int min = PlusMinusOne_RMQ(test1, 2, 9, (sizeof(test1)/sizeof(*test1)));
+    //int min = RMQ_ST(test2, 2, 42, sizeof(test2)/sizeof(*test2));
+    //int min = PlusMinusOne_RMQ(test1, 1, 9, (sizeof(test1)/sizeof(*test1)));
     //int min = PlusMinusOne_RMQ(test2, 18, 42, (sizeof(test2)/sizeof(*test2)));
-    //int min = PlusMinusOne_RMQ(test2, 1, 11, (sizeof(test2)/sizeof(*test2)));
+    //int min = PlusMinusOne_RMQ(test2, 1, 9, (sizeof(test2)/sizeof(*test2)));
     //int min = PlusMinusOne_RMQ(test2, 2, 3, (sizeof(test1)/sizeof(*test1)));
     //int min = PlusMinusOne_RMQ(test2, 16, 18, (sizeof(test2)/sizeof(*test2)));
-    //printf("min is at index %d\n", min);
+    //int min = PlusMinusOne_RMQ(test3, 18, 42, (sizeof(test3)/sizeof(*test3)));
+    //int min = PlusMinusOne_RMQ(test3, 2, 254, (sizeof(test3)/sizeof(*test3)));
+    int min = PlusMinusOne_RMQ(test3, 18, 254, (sizeof(test3)/sizeof(*test3)));
+    printf("min is at index %d\n", min);
 
 }
