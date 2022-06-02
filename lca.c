@@ -1,239 +1,213 @@
 #include<stdio.h>
 #include<stdlib.h>
 #include<math.h>
+#include<time.h>
 
-//struct for RMQ
+struct rmq_struct{
+    int* a; //array storing the nodes visited in an euler tour of a tree
+    int n; //length of array a
+    int b; //block length
+    int* min_array; //array of size (((s->n)+(s->b)-1)/(s->b)) storing the minimum element of each block
+    int* index_array; //array of size (((s->n)+(s->b)-1)/(s->b)) storing the in-block index of the minimum element of each block
+    int** st; //sparse table of size (((s->n)+(s->b)-1)/(s->b)) by log2((((s->n)+(s->b)-1)/(s->b)))
+    int*** t; //master table storing O(√n) tables, each of which has O(b^2) space
+    long* signatures; //array of length (((s->n)+(s->b)-1)/(s->b)) storing the integer representation of the binary sequences of the normalized array a
+};
 
-//RMQ init
-//RMQ query
-//RMQ free
-
-
-int RMQ_ST(int* in_array, int i, int j, int n){ // < O(n log n), O(1) >
-
+int RMQ_ST(struct rmq_struct* s, int i, int j){ // < O(n log n), O(1) >
     //boundary check
-    if (i < 0 || j >= n || j < i) return -1;
+    if (i < 0 || j >= (s->n) || j < i) return -1;
+    
+    //special case
+    if ((s->n) == 1) return 0;
 
     //sparse table declaration & initialization
-    int** st;
-    st = (int**)malloc(n * sizeof(int*));
-    for (int i = 0; i < n; i++){
-        st[i] = (int*)malloc(log2(n) * sizeof(int));
+    s->st = (int**)calloc((s->n),sizeof(int*));
+    for (int i = 0; i < (s->n); i++){
+        s->st[i] = (int*)calloc(ceil(log2(s->n)),sizeof(int));
     }
 
     //sparse table completion
-    for (int i = 0; i < n; i++){
-        st[i][0] = i;
+    for (int i = 0; i < (s->n); i++){
+        s->st[i][0] = i;
     }
-    for (int j = 1; j <= log2(n); j++){
-        for (int i = 0; (i+(1<<j)) <= n; i++){
-            if (in_array[st[i][j-1]] <= in_array[st[i+(1<<(j-1))][j-1]]) st[i][j] = st[i][j-1];
-            else st[i][j] = st[i+(1<<(j-1))][j-1];
+    for (int j = 1; j < (ceil(log2(s->n))); j++){
+        for (int i = 0; (i+(1<<j)) <= (s->n); i++){
+            if (s->a[s->st[i][j-1]] <= s->a[s->st[i+(1<<(j-1))][j-1]]) s->st[i][j] = s->st[i][j-1];
+            else s->st[i][j] = s->st[i+(1<<(j-1))][j-1];
         }
-    }
-
-    //sparse table print
-    for (int i = 0; i < n; i++){
-        for (int j = 0; j <= log2(n); j++){
-            printf("%d  ", st[i][j]);
-        }
-        printf("\n");
     }
     
     //perform range-minimum query
-    int ret;
-    int k = floor(log2(j-i));
-    if (in_array[st[i][k]] <= in_array[st[j-(1<<k)+1][k]]) ret = st[i][k];
-    else ret = st[j-(1<<k)+1][k];
-
-    //cleanup
-    for (int i = 0; i < n; i++){
-        free(st[i]);
-    }
-    free(st);
+    int k, ret;
+    ((j-i) == 0) ? (k = 0) : (k = floor(log2(j-i)));
+    if (s->a[s->st[i][k]] <= s->a[s->st[j-(1<<k)+1][k]]) ret = s->st[i][k];
+    else ret = s->st[j-(1<<k)+1][k];
 
     return ret;
-
 }
 
+void RMQ_ST_free(struct rmq_struct* s){
+    free(s->a);
+    if ((s->n) == 1) return;
+    for (int i = 0; i < (s->n); i++){
+        free(s->st[i]);
+    }
+    free(s->st);
+}
 
-int PlusMinusOne_RMQ(int* in_array, int i, int j, int n){ // < O(n), O(1) >
+int RMQ_simple(struct rmq_struct* s, int i , int j){
+    if (i < 0 || j >= (s->n) || j < i) return -1; //boundary check
+    int min = i;
+    for (int k = i; k <= j; k++){
+        if (s->a[k] < s->a[min]) min = k;
+    }
+    return min;
+}
 
-    //boundary check
-    if (i < 0 || j >= n || j < i) return -1;
+void RMQ_init(struct rmq_struct* s){
+    //special case
+    if ((s->n) == 1) return;
 
-    //definitions (assuming that the first block is B0)
-    int b = ceil((double)(log2(n)/2));
-    int num_blocks = ceil(n/(double)b);
-    int block_i = (i/b);
-    int block_j = (j/b);
-    int block_i_end = ((block_i+1)*b)-1;
-    int block_j_start = ((block_j+1)*b)-b;
-
-    //testing
-    /*printf("n = %d\n", n);
-    printf("i = %d\n", i);
-    printf("j = %d\n", j);
-    printf("b = %d\n", b);
-    printf("there are %d blocks\n", num_blocks);
-    printf("i is in block B%d\n", block_i);
-    printf("j is in block B%d\n", block_j);
-    printf("the block which contains i ends at index %d\n", block_i_end);
-    printf("the block which contains j starts at index %d\n", block_j_start);*/
-
-    //define an array A' of size num_blocks, where A'[i] is the minimum element in the ith block of A
-    //define an array B of size num_blocks, where B[i] is a position in the ith block in which value A'[i] occurs
-    //do we even need array A' ?
-    int* min_array = (int*)malloc(num_blocks * sizeof(int)); //our array A'
-    int* index_array = (int*)malloc(num_blocks * sizeof(int)); //our array B
+    //definitions
+    s->b = (8*sizeof(s->n))-__builtin_clz(s->n);
+    //define an array A' of size (((s->n)+(s->b)-1)/(s->b)), where A'[i] is the minimum element in the ith block of A
+    //define an array B of size (((s->n)+(s->b)-1)/(s->b)), where B[i] is a position in the ith block in which value A'[i] occurs
+    s->min_array = (int*)malloc((((s->n)+(s->b)-1)/(s->b)) * sizeof(int));
+    s->index_array = (int*)malloc((((s->n)+(s->b)-1)/(s->b)) * sizeof(int));
     int min, min_index;
-    for (int k = 0; k < n; k += b){
-        min = in_array[k];
+    for (int k = 0; k < (s->n); k += (s->b)){
+        min = s->a[k];
         min_index = 0;
-        for (int l = k; l < k+b; l++){
-            if (in_array[l] < min){
-                min = in_array[l];
+        for (int l = k; (l < (k+(s->b))) && (l < (s->n)); l++){
+            if (s->a[l] < min){
+                min = s->a[l];
                 min_index = l-k;
             }
         }
-        min_array[k/b] = min;
-        index_array[k/b] = min_index;
+        s->min_array[k/s->b] = min;
+        s->index_array[k/s->b] = min_index;
     }
 
     //preprocess A' for RMQ
     //sparse table declaration & initialization
-    int** st;
-    st = (int**)malloc(num_blocks * sizeof(int*));
-    for (int i = 0; i < num_blocks; i++){
-        st[i] = (int*)malloc(log2(num_blocks) * sizeof(int));
+    s->st = (int**)calloc((((s->n)+(s->b)-1)/(s->b)),sizeof(int*));
+    for (int i = 0; i < (((s->n)+(s->b)-1)/(s->b)); i++){
+        s->st[i] = (int*)calloc(ceil(log2(((s->n)+(s->b)-1)/(s->b))),sizeof(int));
     }
     //sparse table completion
-    for (int i = 0; i < num_blocks; i++){
-        st[i][0] = i;
+    for (int i = 0; i < (((s->n)+(s->b)-1)/(s->b)); i++){
+        s->st[i][0] = i;
     }
-    for (int j = 1; j <= log2(num_blocks); j++){
-        for (int i = 0; (i+(1<<j)) <= num_blocks; i++){
-            if (min_array[st[i][j-1]] <= min_array[st[i+(1<<(j-1))][j-1]]) st[i][j] = st[i][j-1];
-            else st[i][j] = st[i+(1<<(j-1))][j-1];
+    for (int j = 1; j < ceil(log2(((s->n)+(s->b)-1)/(s->b))); j++){
+        for (int i = 0; (i+(1<<j)) <= (((s->n)+(s->b)-1)/(s->b)); i++){
+            if (s->min_array[s->st[i][j-1]] <= s->min_array[s->st[i+(1<<(j-1))][j-1]]) s->st[i][j] = s->st[i][j-1];
+            else s->st[i][j] = s->st[i+(1<<(j-1))][j-1];
         }
     }
 
     //table declaration & initialization
-    //t is a master table containing O(√n) tables, each of which has O(b^2) space
-    int *** t = (int***)malloc(sqrt(n) * sizeof(int**));
-    for (int u = 0; u < sqrt(n); u++){
-        t[u] = (int**)malloc((b+1) * sizeof(int*));
-        for (int v = 0; v < (b+1); v++){
-            t[u][v] = (int*)malloc((b+1) * sizeof(int));
+    //t is a master table storing O(√n) tables, each of which has O(b^2) space
+    s->t = (int***)calloc(1<<((s->b)-1),sizeof(int**));
+    for (int u = 0; u < (1<<((s->b)-1)); u++){
+        s->t[u] = (int**)calloc((s->b),sizeof(int*));
+        for (int v = 0; v < (s->b); v++){
+            s->t[u][v] = (int*)calloc((s->b),sizeof(int));
         }
     }
 
     //construction of O(b^2) tables
-    char* temp; //maybe do the string to long converion myself so that I don't need this temp variable
     long z;
-    char** normalized_array = (char**)malloc((num_blocks) * sizeof(char));
-    for (int v = 0; v < num_blocks; v++){
-        normalized_array[v] = (char*)malloc((b-1) * sizeof(char));
-    }
-    long* signatures = (long*)malloc(num_blocks * sizeof(long));
-    for (int j = 0; j < num_blocks; j++){
-        for (int l = 0; l < b-1; l++){
-            if (((b*j)+l) < n && ((b*j)+l+1) < n && in_array[(b*j)+l] < in_array[(b*j)+l+1]) normalized_array[j][l] = '1';
-            else normalized_array[j][l] = '0';
+    s->signatures = (long*)malloc((((s->n)+(s->b)-1)/(s->b)) * sizeof(long));
+    for (int j = 0; j < (((s->n)+(s->b)-1)/(s->b)); j++){
+        z = 0;
+        for (int l = 0; l < ((s->b)-1); l++){
+            if (((((s->b)*j)+l) < (s->n)) && ((((s->b)*j)+l+1) < (s->n)) && (s->a[((s->b)*j)+l] < s->a[((s->b)*j)+l+1])) z += (1<<((s->b)-l-2));
         }
-        z = strtol(normalized_array[j], &temp, 2); //store integer representation of binary sequence in signatures array
-        signatures[j] = z;
-        for (int k = 1; k < b+1; k++){
-            t[z][k][k] = k;
-        }
-        for (int k = 0; k < b+1; k++){
-            for (int w = k+1; w < b+1; w++){
-                if ((b*j)+(t[z][k][w-1]) < n && ((b*j)+w) < n && in_array[(b*j)+(t[z][k][w-1])] < in_array[(b*j)+w]) t[z][k][w] = t[z][k][w-1];
-                else t[z][k][w] = w;
+        s->signatures[j] = z;
+        if ((s->b) == 1 || s->t[z][1][1] != 1){
+            for (int k = 1; k < (s->b); k++){
+                s->t[z][k][k] = k;
+            }
+            for (int k = 0; k < (s->b); k++){
+                for (int w = (k+1); w < (s->b); w++){
+                    if (((((s->b)*j)+(s->t[z][k][w-1])) <= (s->n)) && ((((s->b)*j)+w) < (s->n)) && (s->a[((s->b)*j)+(s->t[z][k][w-1])] <= s->a[((s->b)*j)+w])) s->t[z][k][w] = s->t[z][k][w-1];
+                    else s->t[z][k][w] = w;
+                }
             }
         }
     }
-
-    //if i and j are in the same block
-    if (block_i == block_j){
-        int short_min = (b*block_j) + t[signatures[block_j]][i-block_j_start][j-block_j_start];
-        printf("short_min = %d\n", short_min);
-        return short_min;
-    }
-
-    //if i and j are in different blocks
-    if (block_i != block_j){
-        //find min of i to the end of its block
-        int suffix_min = (b*block_i) + t[signatures[block_i]][i-(block_i_end-b+1)][b-1];
-        printf("suffix_min = %d\n", suffix_min);
-
-        //find the min of all the blocks in between i's block and j's block
-        int range_min, k;
-        ((block_j-1)-(block_i+1) == 0) ? (k = 0) : (k = floor(log2((block_j-1)-(block_i+1))));
-
-        if (min_array[st[block_i+1][k]] <= min_array[st[block_j-1-(1<<k)+1][k]]){
-            //range_min = index_array[st[block_i+1][k]];
-            //printf("range_min is in block %d, index %d\n", st[block_i+1][k], range_min);
-            //printf("range_min is in block starting at index %d\n", ((st[block_i+1][k])*b));
-            //printf("range_min = %d\n", ((st[block_i+1][k])*b)+(index_array[st[block_i+1][k]]));
-            range_min = ((st[block_i+1][k])*b)+(index_array[st[block_i+1][k]]);
-        }
-        else{
-            //range_min = index_array[st[block_j-1-(1<<k)+1][k]];
-            //printf("range_min is in block %d, index %d\n", st[block_j-1-(1<<k)+1][k], range_min);
-            //printf("range_min is in block starting at index %d\n", ((st[block_j-1-(1<<k)+1][k])*b));
-            //printf("range_min = %d\n", ((st[block_j-1-(1<<k)+1][k])*b)+(index_array[st[block_j-1-(1<<k)+1][k]]));
-            range_min = ((st[block_j-1-(1<<k)+1][k])*b)+(index_array[st[block_j-1-(1<<k)+1][k]]);
-        }
-
-        printf("range_min = %d\n", range_min);
-
-        //find the min from j to the beginning of its block
-        int prefix_min = (b*block_j) + t[signatures[block_j]][0][j-block_j_start];
-        printf("prefix_min = %d\n", prefix_min);
-
-        //find ultimate min
-        if (in_array[suffix_min] <= in_array[range_min]) return (in_array[suffix_min] <= in_array[prefix_min]) ? suffix_min : prefix_min;
-        else return (in_array[range_min] <= in_array[prefix_min]) ? range_min : prefix_min;
-
-    }
-
-    //cleanup
-    /*for (int i = 0; i < num_blocks; i++){
-        free(st[i]);
-    }
-    free(st);
-    for (int u = 0; u < sqrt(n); u++){
-        for (int v = 0; v < b; v++){
-            free(t[u][v]);
-        }
-        free(t[u]);
-    }
-    free(t);
-    free(min_array);
-    free(index_array);
-    free(signatures);*/
-
-    return -1; //error
-
 }
 
+int RMQ_query(struct rmq_struct* s, int i, int j){
+    //boundary check
+    if (i < 0 || j >= (s->n) || j < i) return -1;
+    
+    //special case
+    if ((s->n) == 1) return 0;
+
+    //if i and j are in the same block
+    if ((j/(s->b)) == (i/(s->b))) return ((s->b)*(j/(s->b))) + s->t[s->signatures[(j/(s->b))]][i-((j/(s->b))*(s->b))][j-((j/(s->b))*(s->b))];
+
+    //if i and j are in different blocks
+
+    //find min of i to the end of its block
+    int suffix_min = ((s->b)*(i/(s->b))) + s->t[s->signatures[(i/(s->b))]][i-(i/(s->b))*(s->b)][(s->b)-1];
+
+    //find the min from j to the beginning of its block
+    int prefix_min = ((s->b)*(j/(s->b))) + s->t[s->signatures[(j/(s->b))]][0][j-(j/(s->b))*(s->b)];
+
+    if (((j/(s->b))-1)-((i/(s->b))+1) < 0) return (s->a[suffix_min] <= s->a[prefix_min]) ? suffix_min : prefix_min;
+
+    //find the min of all the blocks in between i's block and j's block
+    int range_min, k;
+    (((j/(s->b))-1)-((i/(s->b))+1) == 0) ? (k = 0) : (k = floor(log2(((j/(s->b))-1)-((i/(s->b))+1))));
+    if (s->min_array[s->st[(i/(s->b))+1][k]] <= s->min_array[s->st[(j/(s->b))-1-(1<<k)+1][k]]) range_min = ((s->st[(i/(s->b))+1][k])*(s->b))+(s->index_array[s->st[(i/(s->b))+1][k]]);
+    else range_min = ((s->st[(j/(s->b))-1-(1<<k)+1][k])*(s->b))+(s->index_array[s->st[(j/(s->b))-1-(1<<k)+1][k]]);
+
+    //find true min
+    if (s->a[suffix_min] <= s->a[range_min]) return (s->a[suffix_min] <= s->a[prefix_min]) ? suffix_min : prefix_min;
+    else return (s->a[range_min] <= s->a[prefix_min]) ? range_min : prefix_min;
+}
+
+void RMQ_free(struct rmq_struct* s){
+    free(s->a);
+    if ((s->n) == 1) return;
+    free(s->min_array);
+    free(s->index_array);
+    for (int i = 0; i < (((s->n)+(s->b)-1)/(s->b)); i++){
+        free(s->st[i]);
+    }
+    free(s->st);
+    for (int u = 0; u < (1<<((s->b)-1)); u++){
+        for (int v = 0; v < (s->b); v++){
+            free(s->t[u][v]);
+        }
+        free(s->t[u]);
+    }
+    free(s->t);
+    free(s->signatures);
+}
 
 int main(){
+    int k = 1000000;
+    int l = 0;
+    struct rmq_struct s1;
+    s1.n = k;
+    s1.a = (int*)malloc(k * sizeof(int));
+    s1.a[0] = 0;
+    for (int i = 1; i < k; i++){
+        if ((rand() % 2) == 0) s1.a[i] = (s1.a[i-1]) + 1;
+        else s1.a[i] = (s1.a[i-1]) - 1;
+    }
+    RMQ_init(&s1);
+    srand(time(NULL));
+    while (l < 1000000) {
+        int j = (int)(((double)k/RAND_MAX) * rand());
+        int i = (int)(((double)(j)/RAND_MAX) * rand());
 
-    int test1[] = {-1,0,1,2,3,2,1,2,3,2,3,4,3,2,1,0};
-    int test2[] = {0,1,2,3,4,5,6,7,8,7,8,9,10,11,10,9,10,9,8,7,6,7,8,7,8,9,10,11,10,9,8,7,6,5,4,3,2,1,0,1,0,1,2,3,4,5,6,7,8,7,8,9,10,11,10,9,10,9,8,7,6,7,8,7,8,9,10,11,10,9,8,7,6,5,4,3,2,1,0,1,0,1,2,3,4,5,6,7,8,7,8,9,10,11,10,9,10,9,8,7,6,7,8,7,8,9,10,11,10,9,8,7,6,5,4,3,2,1,0,1,0,1,2,3,4,5,6,7,8,7,8,9,10,11,10,9,10,9,8,7,6,7,8,7,8,9,10,11,10,9,8,7,6,5,4,3,2,1,0,1,0,1,2,3,4,5,6,7,8,7,8,9,10,11,10,9,10,9,8,7,6,7,8,7,8,9,10,11,10,9,8,7,6,5,4,3,2,1,0,1,0,1,2,3,4,5,6,7,8,7,8,9,10,11,10,9,10,9,8,7,6,7,8,7,8,9,10,11,10,9,8,7,6,5,4,3,2,1,0,1,0,1,2,3,4,5,6,7,6,5,4,3,2,1,0,-1};
-    int test3[] = {0,1,2,3,4,5,6,7,8,7,8,9,10,11,10,9,10,9,8,7,6,7,8,7,8,9,10,11,10,9,8,7,6,5,4,3,2,1,0,1,0,1,2,3,4,5,6,7,8,7,8,9,10,11,10,9,10,9,8,7,6,7,8,7,8,9,10,11,10,9,8,7,6,5,4,3,2,1,0,1,0,1,2,3,4,5,6,7,8,7,8,9,10,11,10,9,10,9,8,7,6,7,8,7,8,9,10,11,10,9,8,7,6,5,4,3,2,1,0,1,0,1,2,3,4,5,6,7,8,7,8,9,10,11,10,9,10,9,8,7,6,7,8,7,8,9,10,11,10,9,8,7,6,5,4,3,2,1,0,1,0,1,2,3,4,5,6,7,8,7,8,9,10,11,10,9,10,9,8,7,6,7,8,7,8,9,10,11,10,9,8,7,6,5,4,3,2,1,0,1,0,1,2,3,4,5,6,7,8,7,8,9,10,11,10,9,10,9,8,7,6,7,8,7,8,9,10,11,10,9,8,7,6,5,4,3,2,1,0,1,0,1,2,3,4,5,6,5,4,3,2,1,0,-1,-2};
-    //int min = RMQ_ST(test1, 4, 8, sizeof(test1)/sizeof(*test1));
-    //int min = RMQ_ST(test2, 2, 42, sizeof(test2)/sizeof(*test2));
-    //int min = PlusMinusOne_RMQ(test1, 1, 9, (sizeof(test1)/sizeof(*test1)));
-    //int min = PlusMinusOne_RMQ(test2, 18, 42, (sizeof(test2)/sizeof(*test2)));
-    //int min = PlusMinusOne_RMQ(test2, 1, 9, (sizeof(test2)/sizeof(*test2)));
-    //int min = PlusMinusOne_RMQ(test2, 2, 3, (sizeof(test1)/sizeof(*test1)));
-    //int min = PlusMinusOne_RMQ(test2, 16, 18, (sizeof(test2)/sizeof(*test2)));
-    //int min = PlusMinusOne_RMQ(test3, 18, 42, (sizeof(test3)/sizeof(*test3)));
-    //int min = PlusMinusOne_RMQ(test3, 2, 254, (sizeof(test3)/sizeof(*test3)));
-    int min = PlusMinusOne_RMQ(test3, 18, 254, (sizeof(test3)/sizeof(*test3)));
-    printf("min is at index %d\n", min);
-
+        RMQ_query(&s1, i, j);
+        l++;
+    }
+    RMQ_free(&s1);
 }
