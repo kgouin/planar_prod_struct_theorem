@@ -70,7 +70,7 @@ void RMQ_init(struct rmq_struct* s){
     if ((s->n) == 1) return;
 
     //definitions
-    s->b = (8*sizeof(s->n))-__builtin_clz(s->n);
+    s->b = 2*((8*sizeof(s->n))-__builtin_clz((s->n)-1))/3;
     //define an array A' of size (((s->n)+(s->b)-1)/(s->b)), where A'[i] is the minimum element in the ith block of A
     //define an array B of size (((s->n)+(s->b)-1)/(s->b)), where B[i] is a position in the ith block in which value A'[i] occurs
     s->min_array = (int*)malloc((((s->n)+(s->b)-1)/(s->b)) * sizeof(int));
