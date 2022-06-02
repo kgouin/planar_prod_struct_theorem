@@ -19,7 +19,7 @@ struct rmq_struct{
 int RMQ_ST(struct rmq_struct* s, int i, int j){ // < O(n log n), O(1) >
     //boundary check
     if (i < 0 || j >= (s->n) || j < i) return -1;
-    
+
     //special case
     if ((s->n) == 1) return 0;
 
@@ -39,7 +39,7 @@ int RMQ_ST(struct rmq_struct* s, int i, int j){ // < O(n log n), O(1) >
             else s->st[i][j] = s->st[i+(1<<(j-1))][j-1];
         }
     }
-    
+
     //perform range-minimum query
     int k, ret;
     ((j-i) == 0) ? (k = 0) : (k = floor(log2(j-i)));
@@ -144,7 +144,7 @@ void RMQ_init(struct rmq_struct* s){
 int RMQ_query(struct rmq_struct* s, int i, int j){
     //boundary check
     if (i < 0 || j >= (s->n) || j < i) return -1;
-    
+
     //special case
     if ((s->n) == 1) return 0;
 
@@ -265,29 +265,43 @@ void LCA_free(struct rmq_struct* s){
 }
 
 int main(){
-
-    //////////////// RMQ testing ////////////////
-
-    /*int k = 1000000;
+    int k = 10000000;
     int l = 0;
     struct rmq_struct s1;
+    clock_t start;
+    double elapsed;
+
+    printf("Creating input %d-element input array...", k);
+    fflush(stdout);
+    start = clock();
     s1.n = k;
-    s1.a = (int*)malloc(k * sizeof(int));
-    s1.a[0] = 0;
+    s1.d = (int*)malloc(k * sizeof(int));
+    s1.d[0] = 0;
     for (int i = 1; i < k; i++){
-        if ((rand() % 2) == 0) s1.a[i] = (s1.a[i-1]) + 1;
-        else s1.a[i] = (s1.a[i-1]) - 1;
+        if ((rand() % 2) == 0) s1.d[i] = (s1.d[i-1]) + 1;
+        else s1.d[i] = (s1.d[i-1]) - 1;
     }
+    printf("done (%.4fs)\n", ((double)clock()-start)/CLOCKS_PER_SEC);
+
+    printf("Creating RMQ structure...");
+    fflush(stdout);
     RMQ_init(&s1);
+    printf("done (%.4fs)\n", ((double)clock()-start)/CLOCKS_PER_SEC);
     srand(time(NULL));
-    while (l < 1000000) {
+
+    printf("Block size = %d\n", s1.b);
+
+    printf("Performing %d queries...", k);
+    fflush(stdout);
+    while (l < k) {
         int j = (int)(((double)k/RAND_MAX) * rand());
         int i = (int)(((double)(j)/RAND_MAX) * rand());
 
         RMQ_query(&s1, i, j);
         l++;
     }
-    RMQ_free(&s1);*/
+    printf("done (%.4fs)\n", ((double)clock()-start)/CLOCKS_PER_SEC);
+    RMQ_free(&s1);
 
     //////////////// LCA testing ////////////////
 
