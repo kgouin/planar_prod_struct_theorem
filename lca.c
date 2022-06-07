@@ -63,22 +63,6 @@ void LCA_init(struct rmq_struct* s, int** adj, int n){
     }
     
     RMQ_init(s);
-    
-    printf("euler tour array:  ");
-    for (int k = 0; k < (s->n); k ++){
-        printf("%d ", s->e[k]);
-    }
-    printf("\n");
-    printf("depth array:  ");
-    for (int k = 0; k < (s->n); k ++){
-        printf("%d ", s->d[k]);
-    }
-    printf("\n");
-    printf("representative array:  ");
-    for (int k = 0; k < ((s->n)/2)+1; k ++){
-        printf("%d ", s->r[k]);
-    }
-    printf("\n");
 }
 
 int LCA_query(struct rmq_struct* s, int i, int j){

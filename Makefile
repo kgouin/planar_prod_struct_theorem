@@ -1,4 +1,4 @@
-all : rmq_exec lca_exec
+all : rmq_exec lca_exec clean
 
 rmq_exec : rmq.h rmq rmq_test.c
 	gcc -g -o rmq_exec rmq.c rmq_test.c -lm
@@ -19,4 +19,4 @@ profile.txt : lca.c
 	echo "See profile.txt for line-level profiling information"
 
 clean :
-	rm -f *.o *_exec
+	rm -f *.o

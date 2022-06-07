@@ -5,171 +5,91 @@
 #include"lca.h"
 
 int main(){
-    int n = 9;
-    //create lca_struct
-    struct rmq_struct s;
+	//complete binary tree creation (where the number of nodes equals 2^height-1)
+	int h = 20;
+	int m = ((1<<h)-1);
 
-    //create adjacency list
-    int** adj1 = (int**)calloc(n,sizeof(int*));
-    for (int i = 0; i < n; i++){
-        adj1[i] = (int*)calloc(3,sizeof(int));
-    }
+	clock_t start;
 
-    //fill in adjacency list
-    //a negative integer represents a null value
-    adj1[0][0] = -1; //parent
-    adj1[0][1] = 1; //left child
-    adj1[0][2] = 5; //right child
-    adj1[1][0] = 0;
-    adj1[1][1] = 2;
-    adj1[1][2] = 3;
-    adj1[2][0] = 1;
-    adj1[2][1] = -1;
-    adj1[2][2] = -1;
-    adj1[3][0] = 1;
-    adj1[3][1] = -1;
-    adj1[3][2] = 4;
-    adj1[4][0] = 3;
-    adj1[4][1] = -1;
-    adj1[4][2] = -1;
-    adj1[5][0] = 0;
-    adj1[5][1] = 6;
-    adj1[5][2] = 7;
-    adj1[6][0] = 5;
-    adj1[6][1] = -1;
-    adj1[6][2] = -1;
-    adj1[7][0] = 5;
-    adj1[7][1] = 8;
-    adj1[7][2] = -1;
-    adj1[8][0] = 7;
-    adj1[8][1] = -1;
-    adj1[8][2] = -1;
-    
-    for (int i = 0; i < n; i++){
-        for (int j = 0; j < 3; j++){
-            if (adj1[i][j] == -1) printf("%d  ", adj1[i][j]);
-            else printf("%d   ", adj1[i][j]);
-        }
-        printf("\n");
-    }
+	printf("Creating %d-node adjacency list representation of binary tree...", m);
+	fflush(stdout);
+    start = clock();
+	int** a = (int**)calloc(m,sizeof(int*));
+	for (int i = 0; i < m; i++){
+		a[i] = (int*)calloc(3,sizeof(int));
+	}
+	//fill in parents
+	a[0][0] = -1;
+	for (int i = 1; i < m; i++){
+		a[i][0] = (int)ceil((double)i/2) - 1;
+	}
+	//fill in children
+	for (int i = 0; i < m; i++){
+		if (i < ((m-1)/2)){
+			a[i][1] = i+i+1;
+			a[i][2] = i+i+1+1;
+		}
+		else{
+			a[i][1] = -1;
+			a[i][2] = -1;
+		}
+	}
+	printf("done (%.4fs)\n", ((double)clock()-start)/CLOCKS_PER_SEC);
 
-    LCA_init(&s, adj1, ((2*(n))-1));
-    printf("LCA = %d\n", LCA_query(&s, 2, 1));
-    LCA_free(&s);
+	/*for (int i = 0; i < m; i++){
+		for (int j = 0; j < 3; j++){
+			if (a[i][j] == -1) printf("%d  ", a[i][j]);
+			else printf("%d   ", a[i][j]);
+		}
+		printf("\n");
+	}*/
 
-    //cleanup
-    for (int i = 0; i < n; i++){
-        free(adj1[i]);
-    }
-    free(adj1);
+	struct rmq_struct rs;
+	printf("Creating RMQ structure for LCA...");
+	fflush(stdout);
+	LCA_init(&rs, a, ((2*(m))-1));
+	printf("done (%.4fs)\n", ((double)clock()-start)/CLOCKS_PER_SEC);
+	srand(time(NULL));
 
-    //create adjacency list
-    int** adj2 = (int**)calloc(n,sizeof(int*));
-    for (int i = 0; i < n; i++){
-        adj2[i] = (int*)calloc(3,sizeof(int));
-    }
+	printf("Performing %d queries...", m);
+	fflush(stdout);
+	int k = 0;
+	while (k < m) {
+		int i = (int)(((double)m/RAND_MAX) * rand());
+		int j = (int)(((double)m/RAND_MAX) * rand());
 
-    //fill in adjacency list
-    //a negative integer represents a null value
-    adj2[0][0] = -1; //parent
-    adj2[0][1] = 8; //left child
-    adj2[0][2] = 6; //right child
-    adj2[1][0] = 6;
-    adj2[1][1] = 3;
-    adj2[1][2] = -1;
-    adj2[2][0] = 8;
-    adj2[2][1] = -1;
-    adj2[2][2] = 4;
-    adj2[3][0] = 1;
-    adj2[3][1] = -1;
-    adj2[3][2] = -1;
-    adj2[4][0] = 2;
-    adj2[4][1] = -1;
-    adj2[4][2] = -1;
-    adj2[5][0] = 8;
-    adj2[5][1] = -1;
-    adj2[5][2] = -1;
-    adj2[6][0] = 0;
-    adj2[6][1] = 7;
-    adj2[6][2] = 1;
-    adj2[7][0] = 6;
-    adj2[7][1] = -1;
-    adj2[7][2] = -1;
-    adj2[8][0] = 0;
-    adj2[8][1] = 5;
-    adj2[8][2] = 2;
+		LCA_query(&rs, i, j);
+		k++;
+	}
+	printf("done (%.4fs)\n", ((double)clock()-start)/CLOCKS_PER_SEC);
 
-    printf("----------------\n");
-    for (int i = 0; i < n; i++){
-        for (int j = 0; j < 3; j++){
-            if (adj2[i][j] == -1) printf("%d  ", adj2[i][j]);
-            else printf("%d   ", adj2[i][j]);
-        }
-        printf("\n");
-    }
-
-    LCA_init(&s, adj2, ((2*(n))-1));
-    printf("LCA = %d\n", LCA_query(&s, 2, 1));
-    LCA_free(&s);
-
-    //cleanup
-    for (int i = 0; i < n; i++){
-        free(adj2[i]);
-    }
-    free(adj2);
-
- //create adjacency list
-    int** adj3 = (int**)calloc(n,sizeof(int*));
-    for (int i = 0; i < n; i++){
-        adj3[i] = (int*)calloc(3,sizeof(int));
-    }
-
-    //fill in adjacency list
-    //a negative integer represents a null value
-    adj3[0][0] = -1; //parent
-    adj3[0][1] = 5; //left child
-    adj3[0][2] = 7; //right child
-    adj3[1][0] = 5;
-    adj3[1][1] = -1;
-    adj3[1][2] = 6;
-    adj3[2][0] = 5;
-    adj3[2][1] = -1;
-    adj3[2][2] = -1;
-    adj3[3][0] = 7;
-    adj3[3][1] = 8;
-    adj3[3][2] = -1;
-    adj3[4][0] = 7;
-    adj3[4][1] = -1;
-    adj3[4][2] = -1;
-    adj3[5][0] = 0;
-    adj3[5][1] = 2;
-    adj3[5][2] = 1;
-    adj3[6][0] = 1;
-    adj3[6][1] = -1;
-    adj3[6][2] = -1;
-    adj3[7][0] = 0;
-    adj3[7][1] = 4;
-    adj3[7][2] = 3;
-    adj3[8][0] = 3;
-    adj3[8][1] = -1;
-    adj3[8][2] = -1;
-
-    printf("----------------\n");
-    for (int i = 0; i < n; i++){
-        for (int j = 0; j < 3; j++){
-            if (adj3[i][j] == -1) printf("%d  ", adj3[i][j]);
-            else printf("%d   ", adj3[i][j]);
-        }
-        printf("\n");
-    }
-
-    LCA_init(&s, adj3, ((2*(n))-1));
-    printf("LCA = %d\n", LCA_query(&s, 2, 1));
-    LCA_free(&s);
-
-    //cleanup
-    for (int i = 0; i < n; i++){
-        free(adj3[i]);
-    }
-    free(adj3);
+	//cleanup
+	LCA_free(&rs);
+	for (int i = 0; i < m; i++){
+		free(a[i]);
+	}
+	free(a);
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
