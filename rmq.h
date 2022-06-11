@@ -7,10 +7,14 @@ struct rmq_struct{
     int* min_array; //array of size (((s->n)+(s->b)-1)/(s->b)) storing the minimum element of each block
     int* index_array; //array of size (((s->n)+(s->b)-1)/(s->b)) storing the in-block index of the minimum element of each block
     int** st; //sparse table of size (((s->n)+(s->b)-1)/(s->b)) by log2((((s->n)+(s->b)-1)/(s->b)))
-    int*** t; //master table storing O(√n) tables, each of which has O(b^2) space
-    long* signatures; //array of length (((s->n)+(s->b)-1)/(s->b)) storing the integer representation of the binary sequences of the normalized array corresponding to d
+    //int*** t; //master table storing O(√n) tables, each of which has O(b^2) space
+    int* t; //master table storing O(√n) tables, each of which has O(b^2) space
+    int* signatures; //array of length (((s->n)+(s->b)-1)/(s->b)) storing the integer representation of the binary sequences of the normalized array corresponding to d
 };
 
+int RMQ_ST(struct rmq_struct*, int, int);
+void RMQ_ST_free(struct rmq_struct*);
+int RMQ_simple(struct rmq_struct*, int, int);
 void RMQ_init(struct rmq_struct*);
 int RMQ_query(struct rmq_struct*, int, int);
 void RMQ_free(struct rmq_struct*);
