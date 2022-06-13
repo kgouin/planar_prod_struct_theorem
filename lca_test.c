@@ -36,14 +36,6 @@ int main(){
 	}
 	printf("done (%.4fs)\n", ((double)clock()-start)/CLOCKS_PER_SEC);
 
-	/*for (int i = 0; i < m; i++){
-		for (int j = 0; j < 3; j++){
-			if (a[i][j] == -1) printf("%d  ", a[i][j]);
-			else printf("%d   ", a[i][j]);
-		}
-		printf("\n");
-	}*/
-
 	struct rmq_struct rs;
 	printf("Creating RMQ structure for LCA...");
 	fflush(stdout);
@@ -51,12 +43,19 @@ int main(){
 	printf("done (%.4fs)\n", ((double)clock()-start)/CLOCKS_PER_SEC);
 	srand(time(NULL));
 
-	printf("Performing %d queries...", m);
+	printf("Performing %d queries...\n", m);
 	fflush(stdout);
 	int k = 0;
 	while (k < m) {
 		int i = (int)(((double)m/RAND_MAX) * rand());
 		int j = (int)(((double)m/RAND_MAX) * rand());
+
+		/*if (LCA_query(&rs, i, j) != LCA_simple(a, h, i, j)){
+			printf("ERROR\n");
+			printf("LCA_query = %d, LCA_simple = %d\n", LCA_query(&rs, i, j), LCA_simple(a, h, i, j));
+			printf("i = %d, j = %d\n", i, j);
+			break;
+		}*/
 
 		LCA_query(&rs, i, j);
 		k++;

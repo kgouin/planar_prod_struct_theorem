@@ -4,6 +4,46 @@
 #include<time.h>
 #include"lca.h"
 
+int LCA_simple(int** adj, int h, int i, int j){
+	int* i_ancestor_array = malloc(h*sizeof(int));
+	int* j_ancestor_array = malloc(h*sizeof(int));
+
+	int i_count = 0;
+	int k = i;
+	while (k > -1){
+		i_ancestor_array[i_count] = k;
+		i_count++;
+		k = adj[k][0];
+	}
+
+	int j_count = 0;
+	int m = j;
+	while (m > -1){
+		j_ancestor_array[j_count] = m;
+		j_count++;
+		m = adj[m][0];
+	}
+
+	int ret = -1;
+	int stop = 0;
+	for (int k = 0; k < i_count; k++){
+		if (!stop){
+			for (int m = 0; m < j_count; m++){
+				if (i_ancestor_array[k] == j_ancestor_array[m]){
+					ret = i_ancestor_array[k];
+					stop = 1;
+					break;
+				}
+			}
+		}
+	}
+
+	free(i_ancestor_array);
+	free(j_ancestor_array);
+
+	return ret;
+}
+
 void LCA_init(struct rmq_struct* s, int** adj, int n){
     //special case
     if (n == 1) return;
