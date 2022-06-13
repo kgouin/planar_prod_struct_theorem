@@ -36,6 +36,13 @@ int main(){
 	while (l < k) {
 		int j = (int)(((double)k/RAND_MAX) * rand());
 		int i = (int)(((double)(j)/RAND_MAX) * rand());
+		
+		/*if (RMQ_query(&s1, i, j) != RMQ_simple(&s1, i, j)){
+			printf("ERROR\n");
+			printf("RMQ_query = %d, RMQ_simple = %d\n", RMQ_query(&s1, i, j), RMQ_simple(&s1, i, j));
+			printf("i = %d, j = %d\n", i, j);
+			break;
+		}*/
 
 		RMQ_query(&s1, i, j);
 		l++;

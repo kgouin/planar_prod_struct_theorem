@@ -4,48 +4,6 @@
 #include<time.h>
 #include"rmq.h"
 
-int RMQ_ST(struct rmq_struct* s, int i, int j){ // < O(n log n), O(1) >
-	//boundary check
-	if (i < 0 || j >= (s->n) || j < i) return -1;
-
-	//special case
-	if ((s->n) == 1) return 0;
-
-	//sparse table declaration & initialization
-	s->st = (int**)calloc((s->n),sizeof(int*));
-	for (int i = 0; i < (s->n); i++){
-		s->st[i] = (int*)calloc(ceil(log2(s->n)),sizeof(int));
-	}
-
-	//sparse table completion
-	for (int i = 0; i < (s->n); i++){
-		s->st[i][0] = i;
-	}
-	for (int j = 1; j < (ceil(log2(s->n))); j++){
-		for (int i = 0; (i+(1<<j)) <= (s->n); i++){
-			if (s->d[s->st[i][j-1]] <= s->d[s->st[i+(1<<(j-1))][j-1]]) s->st[i][j] = s->st[i][j-1];
-			else s->st[i][j] = s->st[i+(1<<(j-1))][j-1];
-		}
-	}
-
-	//perform range-minimum query
-	int k, ret;
-	((j-i) == 0) ? (k = 0) : (k = floor(log2(j-i)));
-	if (s->d[s->st[i][k]] <= s->d[s->st[j-(1<<k)+1][k]]) ret = s->st[i][k];
-	else ret = s->st[j-(1<<k)+1][k];
-
-	return ret;
-}
-
-void RMQ_ST_free(struct rmq_struct* s){
-	free(s->d);
-	if ((s->n) == 1) return;
-	for (int i = 0; i < (s->n); i++){
-		free(s->st[i]);
-	}
-	free(s->st);
-}
-
 int RMQ_simple(struct rmq_struct* s, int i , int j){
 	if (i < 0 || j >= (s->n) || j < i) return -1; //boundary check
 	int min = i;
@@ -137,26 +95,15 @@ int RMQ_query(struct rmq_struct* s, int i, int j){
 	//special case
 	if ((s->n) == 1) return 0;
 
-	int sum;
+	int y = ((s->b)*(i-((i/(s->b))*(s->b))))-(((i-((i/(s->b))*(s->b)))*((i-((i/(s->b))*(s->b)))-1))/2);
 
 	//if i and j are in the same block
-	if ((j/(s->b)) == (i/(s->b))){
-		sum = 0;
-		for (int k = 0; k < (i-((i/(s->b))*(s->b))); k++){
-			sum += (s->b)-k;
-		}
-		return ((s->b)*(i/(s->b))) + s->t[(s->signatures[(i/(s->b))]*((((s->b)*((s->b)-1))/2)+(s->b)))+sum+((j-((j/(s->b))*(s->b)))-(i-((i/(s->b))*(s->b))))];
-	}
+	if ((j/(s->b)) == (i/(s->b))) return ((s->b)*(i/(s->b))) + s->t[(s->signatures[(i/(s->b))]*((((s->b)*((s->b)-1))/2)+(s->b)))+y+((j-((j/(s->b))*(s->b)))-(i-((i/(s->b))*(s->b))))];
 
 	//if i and j are in different blocks
 
 	//find min of i to the end of its block
-	sum = 0;
-	for (int k = 0; k < (i-((i/(s->b))*(s->b))); k++){ //this works but it is not optimal
-		sum += (s->b)-k;
-	}
-	sum += (s->b)-(i-((i/(s->b))*(s->b)))-1;
-	int suffix_min = ((s->b)*(i/(s->b))) + s->t[(s->signatures[(i/(s->b))]*((((s->b)*((s->b)-1))/2)+(s->b)))+sum];
+	int suffix_min = ((s->b)*(i/(s->b))) + s->t[(s->signatures[(i/(s->b))]*((((s->b)*((s->b)-1))/2)+(s->b)))+y+((s->b)-(i-((i/(s->b))*(s->b)))-1)];
 
 	//find the min from j to the beginning of its block
 	int prefix_min = ((s->b)*(j/(s->b))) + s->t[(s->signatures[(j/(s->b))]*((((s->b)*((s->b)-1))/2)+(s->b)))+(j-((j/(s->b))*(s->b)))];
