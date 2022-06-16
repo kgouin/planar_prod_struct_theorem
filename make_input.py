@@ -64,6 +64,11 @@ def triangulate(points):
     with open("adjacencies.txt", "w") as fp:
         fp.write("{}\n".format(n))
         for i in range(n):
+            c = 0
+            for j in al[i]:
+                c += 1
+            c = str(c) + " "
+            fp.write("{}".format(c))
             fp.write("{}\n".format(" ".join([str(j) for j in al[i]])))
 
     # Each vertex stores the coordinates of the point that defines it
