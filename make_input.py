@@ -39,7 +39,7 @@ def triangulate(points):
     simplices[0] = of[:]
     for i in range(3):
         t2 = left_of[of[(i+1)%3]][of[i]]
-        simplices[0][i] = succ[of[(i+1)%3]][of[i]]
+        #simplices[0][i] = succ[of[(i+1)%3]][of[i]]
         succ[of[i]][of[(i+1)%3]] = of[(i+2)%3]
         triangles[0][i] = t2
         triangles[t2][triangles[t2].index(-1)] = 0
