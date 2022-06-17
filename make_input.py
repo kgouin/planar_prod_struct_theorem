@@ -15,7 +15,7 @@ def triangulate(points):
     assert(dt.npoints == n)
     assert(len(dt.convex_hull) == 3)
     assert(dt.nsimplex == 2*n - 5)
-    left_of = [dict() for _ in range(n)]
+    left_of = [collections.defaultdict(int) for _ in range(n)]
     succ = [dict() for _ in range(n)]
     simplices = [[-1]*3] + [list(t) for t in dt.simplices]
     for k in range(1, len(simplices)):
@@ -63,13 +63,19 @@ def triangulate(points):
     al = succ2al(succ)
     with open("adjacencies.txt", "w") as fp:
         fp.write("{}\n".format(n))
+        print(al)
         for i in range(n):
-            c = 0
-            for j in al[i]:
-                c += 1
-            c = str(c) + " "
-            fp.write("{}".format(c))
-            fp.write("{}\n".format(" ".join([str(j) for j in al[i]])))
+            # length of adjacency list
+            fp.write("{} ".format(len(al[i])))
+
+            # adjacency list (vertices)
+            fp.write("{} ".format(" ".join([str(j) for j in al[i]])))
+
+            # incidence list (triangles)
+            print(al[i])
+            fp.write("{}\n".format(" ".join([str(left_of[i][j]) for j in al[i]])))
+
+
 
     # Each vertex stores the coordinates of the point that defines it
     print("Writing points.txt")
