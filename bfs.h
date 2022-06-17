@@ -2,8 +2,7 @@ struct bfs_struct{
 	int v; //the number of vertices in a triangulation
 	int** a; //the adjacency list of a triangulation
 	int* n; //the number of neighbours for each vertex in a triangulation
-	int* r; //the roots of the triangulation
-	int* bfs; //the breadth-first-search array
+	int* p; //the parent array, which will act as the seen array as well
 };
 
 void BFS_init(struct bfs_struct*);
