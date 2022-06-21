@@ -98,8 +98,9 @@ int* BFS(struct bfs_struct* s){
 	s->ct[0][1] = s->ct[0][0];
 	s->ct[0][0] = -1;
 	s->ct[0][2] = -1;
-	for (int k = 0; k < s->v; k++){ //error somewhere here; parents are not always correctly labeled
+	for (int k = 0; k < ((2*(s->v))-4); k++){
 		for (int m = 1; m < 3; m++){
+			printf("k = %d, m = %d\n", k, m);
 			if (s->ct[k][m] != -1 && s->ct[s->ct[k][m]][1] == k){
 				s->ct[s->ct[k][m]][1] = s->ct[s->ct[k][m]][0];
 				s->ct[s->ct[k][m]][0] = k;
