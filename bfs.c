@@ -63,7 +63,7 @@ int* BFS(struct bfs_struct* s){
 				q[end] = s->al[temp][k];
 				end++;
 			}
-			else if (s->bt[temp] != s->al[temp][k]){ //contruct cotree
+			else if (s->bt[temp] != s->al[temp][k] && s->bt[k] != -2){ //contruct cotree
 				(k-1 < 0) ? (y = k-1+(s->n[k])) : (y = k-1);
 				x = 0;
 				unique = 1;
@@ -83,7 +83,7 @@ int* BFS(struct bfs_struct* s){
 		}
 	}
 
-	//build cotree adjacency list with proper orientation and face 0 as the root
+	//build cotree adjacency list with proper orientation and face 0 as the root //problem with parent identification
 	printf("\n");
 	printf("ct\n");
 	for (int i = 0; i < ((2*(s->v))-4); i++){
@@ -98,9 +98,9 @@ int* BFS(struct bfs_struct* s){
 	s->ct[0][1] = s->ct[0][0];
 	s->ct[0][0] = -1;
 	s->ct[0][2] = -1;
+
 	for (int k = 0; k < ((2*(s->v))-4); k++){
 		for (int m = 1; m < 3; m++){
-			printf("k = %d, m = %d\n", k, m);
 			if (s->ct[k][m] != -1 && s->ct[s->ct[k][m]][1] == k){
 				s->ct[s->ct[k][m]][1] = s->ct[s->ct[k][m]][0];
 				s->ct[s->ct[k][m]][0] = k;
