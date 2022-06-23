@@ -83,39 +83,60 @@ int* BFS(struct bfs_struct* s){
 		}
 	}
 
-	//build cotree adjacency list with proper orientation and face 0 as the root //problem with parent identification
-	printf("\n");
-	printf("ct\n");
+	//build cotree adjacency list with proper orientation and face 0 as the root
+	int* queue = malloc(((2*(s->v))-4)*sizeof(int));
 	for (int i = 0; i < ((2*(s->v))-4); i++){
-		for (int j = 0; j < 3; j++){
-			if (s->ct[i][j] == -1) printf("%d ", s->ct[i][j]);
-			else printf("%d  ", s->ct[i][j]);
-		}
-		printf("\n");
+		queue[i] = -1;
 	}
-	printf("\n");
 
+	//start by arranging row 0 of cotree
 	s->ct[0][1] = s->ct[0][0];
 	s->ct[0][0] = -1;
 	s->ct[0][2] = -1;
 
-	for (int k = 0; k < ((2*(s->v))-4); k++){
-		for (int m = 1; m < 3; m++){
-			if (s->ct[k][m] != -1 && s->ct[s->ct[k][m]][1] == k){
-				s->ct[s->ct[k][m]][1] = s->ct[s->ct[k][m]][0];
-				s->ct[s->ct[k][m]][0] = k;
+	queue[0] = 0;
+	start = 0;
+	end = 1;
+
+	while (start < end){
+		temp = queue[start];
+		start++;
+		if (s->ct[temp][1] != -1){ //look at left child
+			//make sure parent is correct
+			if (s->ct[s->ct[temp][1]][1] == temp){
+				s->ct[s->ct[temp][1]][1] = s->ct[s->ct[temp][1]][0];
+				s->ct[s->ct[temp][1]][0] = temp;
 			}
-			else if (s->ct[k][m] != -1 && s->ct[s->ct[k][m]][2] == k){
-				s->ct[s->ct[k][m]][2] = s->ct[s->ct[k][m]][0];
-				s->ct[s->ct[k][m]][0] = k;
+			else if (s->ct[s->ct[temp][1]][2] == temp){
+				s->ct[s->ct[temp][1]][2] = s->ct[s->ct[temp][1]][0];
+				s->ct[s->ct[temp][1]][0] = temp;
 			}
+			//else parent is in the correct position
+
+			queue[end] = s->ct[temp][1];
+			end++;
+		}
+		if (s->ct[temp][2] != -1){ //look at right child
+			//make sure parent is correct
+			if (s->ct[s->ct[temp][2]][1] == temp){
+				s->ct[s->ct[temp][2]][1] = s->ct[s->ct[temp][2]][0];
+				s->ct[s->ct[temp][2]][0] = temp;
+			}
+			else if (s->ct[s->ct[temp][2]][2] == temp){
+				s->ct[s->ct[temp][2]][2] = s->ct[s->ct[temp][2]][0];
+				s->ct[s->ct[temp][2]][0] = temp;
+			}
+			//else parent is in the correct position
+
+			queue[end] = s->ct[temp][2];
+			end++;
 		}
 	}
-	//then we have to decide if a specific child is a left child or a right child
 
 	printf("\n");
 	printf("ct'\n");
 	for (int i = 0; i < ((2*(s->v))-4); i++){
+		printf("index = %d      ", i);
 		for (int j = 0; j < 3; j++){
 			if (s->ct[i][j] == -1) printf("%d ", s->ct[i][j]);
 			else printf("%d  ", s->ct[i][j]);
@@ -125,6 +146,7 @@ int* BFS(struct bfs_struct* s){
 	printf("\n");
 
 	free(q);
+	free(queue);
 
 	return s->bt;
 }
