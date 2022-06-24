@@ -14,15 +14,61 @@ void BFS_init(struct bfs_struct* s){
 	s->il = malloc((s->v)*sizeof(int*));
 	s->n = malloc((s->v)*sizeof(int*));
 
-	for (int i = 0; i < (s->v); i++){
-		fscanf(fd, "%d", &s->n[i]);
-		s->al[i] = malloc(s->n[i]*sizeof(int));
-		s->il[i] = malloc(s->n[i]*sizeof(int));
-		for (int j = 0; j < 2*(s->n[i]); j++){
-			if (j < (s->n[i])) fscanf(fd, "%d", &s->al[i][j]);
-			else fscanf(fd, "%d", &s->il[i][j-(s->n[i])]);
+	for (int k = 0; k < (s->v); k++){
+		fscanf(fd, "%d", &s->n[k]);
+		s->al[k] = malloc(s->n[k]*sizeof(int));
+		s->il[k] = malloc(s->n[k]*sizeof(int));
+		for (int j = 0; j < 2*(s->n[k]); j++){
+			if (j < (s->n[k])) fscanf(fd, "%d", &s->al[k][j]);
+			else fscanf(fd, "%d", &s->il[k][j-(s->n[k])]);
 		}
 	}
+
+	fclose(fd);
+
+	fd = fopen("triangles.txt", "r");
+	if (!fd) exit(1);
+
+	fscanf(fd, "%d", &(s->f));
+	s->tri = malloc((s->f)*sizeof(int*));
+	for (int k = 0; k < (s->f); k++){
+		s->tri[k] = malloc(3*sizeof(int));
+	}
+
+	for (int k = 0; k < (s->f); k++){
+		for (int j = 0; j < 3; j++){
+			fscanf(fd, "%d", &s->tri[k][j]);
+		}
+	}
+
+	/*printf("\n");
+	printf("al\n");
+	for (int i = 0; i < (s->v); i++){
+		printf("row %d:      ", i);
+		for (int j = 0; j < s->n[i]; j++){
+			printf("%d ", s->al[i][j]);
+		}
+		printf("\n");
+	}
+	printf("\n");
+	printf("il\n");
+	for (int i = 0; i < (s->v); i++){
+		printf("row %d:      ", i);
+		for (int j = 0; j < s->n[i]; j++){
+			printf("%d ", s->il[i][j]);
+		}
+		printf("\n");
+	}
+	printf("\n");
+	printf("tri\n");
+	for (int i = 0; i < (s->f); i++){
+		printf("row %d:      ", i);
+		for (int j = 0; j < 3; j++){
+			printf("%d ", s->tri[i][j]);
+		}
+		printf("\n");
+	}
+	printf("\n");*/
 
 	fclose(fd);
 }
@@ -31,8 +77,8 @@ int* BFS(struct bfs_struct* s){
 	//initialization
 	int* q = malloc((s->v)*sizeof(int));
 	s->bt = malloc((s->v)*sizeof(int));
-	s->ct = malloc(((2*(s->v))-4)*sizeof(int*));
-	for (int k = 0; k < ((2*(s->v))-4); k++){
+	s->ct = malloc((s->f)*sizeof(int*));
+	for (int k = 0; k < (s->f); k++){
 		s->ct[k] = malloc(3*sizeof(int));
 		for (int j = 0; j < 3; j++){
 			s->ct[k][j] = -1;
@@ -84,8 +130,8 @@ int* BFS(struct bfs_struct* s){
 	}
 
 	//build cotree adjacency list with proper orientation and face 0 as the root
-	int* queue = malloc(((2*(s->v))-4)*sizeof(int));
-	for (int i = 0; i < ((2*(s->v))-4); i++){
+	int* queue = malloc((s->f)*sizeof(int));
+	for (int i = 0; i < (s->f); i++){
 		queue[i] = -1;
 	}
 
@@ -133,9 +179,9 @@ int* BFS(struct bfs_struct* s){
 		}
 	}
 
-	printf("\n");
+	/*printf("\n");
 	printf("ct'\n");
-	for (int i = 0; i < ((2*(s->v))-4); i++){
+	for (int i = 0; i < (s->f); i++){
 		printf("index = %d      ", i);
 		for (int j = 0; j < 3; j++){
 			if (s->ct[i][j] == -1) printf("%d ", s->ct[i][j]);
@@ -143,7 +189,36 @@ int* BFS(struct bfs_struct* s){
 		}
 		printf("\n");
 	}
-	printf("\n");
+	printf("\n");*/
+
+	int lc; //will hold the left child
+	for (int k = 1; k < (s->f); k++){
+		if (s->ct[k][1] != -1){ //if a node has children
+			for (int j = 0; j < 3; j++){
+				if (s->ct[k][0] == s->tri[k][j]){ //searching for parent in tri
+					(j < 2) ? (lc = s->tri[k][j+1]) : (lc = s->tri[k][0]);
+					if (s->ct[k][1] != lc && s->ct[k][2] != lc) lc = -1; //special case when child not part of cotree
+					break;
+				}
+			}
+			if (s->ct[k][2] == lc){
+				s->ct[k][2] = s->ct[k][1];
+				s->ct[k][1] = lc;
+			}
+		}
+	}
+
+	/*printf("\n");
+	printf("ct''\n");
+	for (int i = 0; i < (s->f); i++){
+		printf("index = %d      ", i);
+		for (int j = 0; j < 3; j++){
+			if (s->ct[i][j] == -1) printf("%d ", s->ct[i][j]);
+			else printf("%d  ", s->ct[i][j]);
+		}
+		printf("\n");
+	}
+	printf("\n");*/
 
 	free(q);
 	free(queue);
@@ -157,11 +232,13 @@ void BFS_free(struct bfs_struct* s){
 		free(s->al[k]);
 		free(s->il[k]);
 	}
-	for (int k = 0; k < ((2*(s->v))-4); k++){
+	for (int k = 0; k < (s->f); k++){
 		free(s->ct[k]);
+		free(s->tri[k]);
 	}
 	free(s->al);
 	free(s->il);
 	free(s->ct);
+	free(s->tri);
 	free(s->bt);
 }
