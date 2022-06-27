@@ -1,4 +1,4 @@
-all : rmq_exec lca_exec bfs_exec clean
+all : rmq_exec lca_exec bfs_exec tripod_exec clean
 
 rmq_exec : rmq.h rmq rmq_test.c
 	gcc -g -o rmq_exec rmq.c rmq_test.c -lm
@@ -17,6 +17,12 @@ bfs_exec : bfs.h bfs bfs_test.c
 
 bfs : bfs.h
 	gcc -c bfs.c
+
+tripod : rmq.h lca.h bfs.h tripod.h
+	gcc -c tripod.c
+
+tripod_exec : rmq.h lca.h bfs.h tripod.h tripod tripod_test.c
+	gcc -g -o tripod_exec rmq.c lca.c bfs.c tripod.c tripod_test.c -lm
 
 profile.txt : rmq.h rmq rmq_test.c
 	gcc -g -pg -o rmq_prof rmq.c rmq_test.c -lm
