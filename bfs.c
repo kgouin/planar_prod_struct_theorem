@@ -41,41 +41,12 @@ void BFS_init(struct bfs_struct* s){
 		}
 	}
 
-	/*printf("\n");
-	printf("al\n");
-	for (int i = 0; i < (s->v); i++){
-		printf("row %d:      ", i);
-		for (int j = 0; j < s->n[i]; j++){
-			printf("%d ", s->al[i][j]);
-		}
-		printf("\n");
-	}
-	printf("\n");
-	printf("il\n");
-	for (int i = 0; i < (s->v); i++){
-		printf("row %d:      ", i);
-		for (int j = 0; j < s->n[i]; j++){
-			printf("%d ", s->il[i][j]);
-		}
-		printf("\n");
-	}
-	printf("\n");
-	printf("tri\n");
-	for (int i = 0; i < (s->f); i++){
-		printf("row %d:      ", i);
-		for (int j = 0; j < 3; j++){
-			printf("%d ", s->tri[i][j]);
-		}
-		printf("\n");
-	}
-	printf("\n");*/
-
 	fclose(fd);
 }
 
 int* BFS(struct bfs_struct* s){
 	//initialization
-	int* q = malloc((s->v)*sizeof(int));
+	int* q = malloc((s->f)*sizeof(int));
 	s->bt = malloc((s->v)*sizeof(int));
 	s->ct = malloc((s->f)*sizeof(int*));
 	for (int k = 0; k < (s->f); k++){
@@ -105,7 +76,7 @@ int* BFS(struct bfs_struct* s){
 		//add all neighbours of 'removed' elt to q and increase end marker
 		for (int k = 0; k < s->n[temp]; k++){
 			if (s->bt[s->al[temp][k]] == -1){ //construct bfs tree
-				s->bt[s->al[temp][k]] = temp;
+				s->bt[s->al[temp][k]] = temp; //here we set the parent, also set the parent index in the adjacency/simplices list
 				q[end] = s->al[temp][k];
 				end++;
 			}
@@ -130,22 +101,16 @@ int* BFS(struct bfs_struct* s){
 	}
 
 	//build cotree adjacency list with proper orientation and face 0 as the root
-	int* queue = malloc((s->f)*sizeof(int));
-	for (int i = 0; i < (s->f); i++){
-		queue[i] = -1;
-	}
-
-	//start by arranging row 0 of cotree
 	s->ct[0][1] = s->ct[0][0];
 	s->ct[0][0] = -1;
 	s->ct[0][2] = -1;
 
-	queue[0] = 0;
+	q[0] = 0;
 	start = 0;
 	end = 1;
 
 	while (start < end){
-		temp = queue[start];
+		temp = q[start];
 		start++;
 		if (s->ct[temp][1] != -1){ //look at left child
 			//make sure parent is correct
@@ -159,7 +124,7 @@ int* BFS(struct bfs_struct* s){
 			}
 			//else parent is in the correct position
 
-			queue[end] = s->ct[temp][1];
+			q[end] = s->ct[temp][1];
 			end++;
 		}
 		if (s->ct[temp][2] != -1){ //look at right child
@@ -174,23 +139,12 @@ int* BFS(struct bfs_struct* s){
 			}
 			//else parent is in the correct position
 
-			queue[end] = s->ct[temp][2];
+			q[end] = s->ct[temp][2];
 			end++;
 		}
 	}
 
-	/*printf("\n");
-	printf("ct'\n");
-	for (int i = 0; i < (s->f); i++){
-		printf("index = %d      ", i);
-		for (int j = 0; j < 3; j++){
-			if (s->ct[i][j] == -1) printf("%d ", s->ct[i][j]);
-			else printf("%d  ", s->ct[i][j]);
-		}
-		printf("\n");
-	}
-	printf("\n");*/
-
+	//the position the children might not matter
 	int lc; //will hold the left child
 	for (int k = 1; k < (s->f); k++){
 		if (s->ct[k][1] != -1){ //if a node has children
@@ -208,20 +162,7 @@ int* BFS(struct bfs_struct* s){
 		}
 	}
 
-	/*printf("\n");
-	printf("ct''\n");
-	for (int i = 0; i < (s->f); i++){
-		printf("index = %d      ", i);
-		for (int j = 0; j < 3; j++){
-			if (s->ct[i][j] == -1) printf("%d ", s->ct[i][j]);
-			else printf("%d  ", s->ct[i][j]);
-		}
-		printf("\n");
-	}
-	printf("\n");*/
-
 	free(q);
-	free(queue);
 
 	return s->bt;
 }

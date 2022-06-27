@@ -13,15 +13,15 @@ int main(){
 	for (int i = 0; i < (s.v); i++){
 		printf("%d ", s.bt[i]);
 	}
-	printf("\n");
-	/*printf("ct:\n");
-	for (int i = 0; i < (s.v); i++){
+	printf("\n\n");
+	printf("ct:\n");
+	for (int i = 0; i < (s.f); i++){
 		for (int j = 0; j < 3; j++){
 			if (s.ct[i][j] == -1) printf("%d ", s.ct[i][j]);
 			else printf("%d  ", s.ct[i][j]);
 		}
 		printf("\n");
 	}
-	printf("\n");*/
+	printf("\n");
 	BFS_free(&s);
 }
