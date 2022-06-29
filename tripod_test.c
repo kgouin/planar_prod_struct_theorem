@@ -7,6 +7,9 @@
 int main(){
 	struct bfs_struct b;
 	struct rmq_struct r;
-	
+
 	tripod_init(&b, &r);
+
+	BFS_free(&b);
+	LCA_free(&r);
 }
