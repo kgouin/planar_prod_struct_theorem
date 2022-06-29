@@ -6,7 +6,8 @@ struct bfs_struct{
 	int** il; //the incidence list of a triangulation (adjacencies.txt information)
 	int** sim; //simplices.txt information
 	int** tri; //triangles.txt information
-	int* bt; //the the breadth-first search spanning tree representation containing parents of visited vertices
+	int* bt; //the breadth-first search spanning tree representation containing parents of visited vertices
+	int* pin; //the breadth-first search spanning tree representation containing the indices of the parents of visited vertices in al
 	int** ct; //the cotree representation
 };
 

@@ -33,5 +33,11 @@ int main(){
 		printf("\n");
 	}
 	printf("\n");
+	printf("\n");
+	printf("pin:\n");
+	for (int i = 0; i < (s.v); i++){
+		printf("%d ", s.pin[i]);
+	}
+	printf("\n");
 	BFS_free(&s);
 }

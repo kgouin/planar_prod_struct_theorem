@@ -65,6 +65,8 @@ int* BFS(struct bfs_struct* s){
 	//initialization
 	int* q = malloc((s->f)*sizeof(int));
 	s->bt = malloc((s->v)*sizeof(int));
+	s->pin = malloc((s->v)*sizeof(int));
+	s->pin[0] = -2;
 	s->ct = malloc((s->f)*sizeof(int*));
 	for (int k = 0; k < (s->f); k++){
 		s->ct[k] = malloc(3*sizeof(int));
@@ -93,9 +95,12 @@ int* BFS(struct bfs_struct* s){
 		//add all neighbours of 'removed' elt to q and increase end marker
 		for (int k = 0; k < s->n[temp]; k++){
 			if (s->bt[s->al[temp][k]] == -1){ //construct bfs tree
-				s->bt[s->al[temp][k]] = temp; //here we set the parent, also set the parent index in the adjacency/simplices list
+				s->bt[s->al[temp][k]] = temp; //here we set the parent
 				q[end] = s->al[temp][k];
 				end++;
+				for (int j = 0; j < s->n[s->al[temp][k]]; j++){
+					if (s->al[s->al[temp][k]][j] == temp) s->pin[s->al[temp][k]] = j; //here we set the parent index within al
+				}
 			}
 			else if (s->bt[temp] != s->al[temp][k] && s->bt[k] != -2){ //contruct cotree
 				(k-1 < 0) ? (y = k-1+(s->n[k])) : (y = k-1);
@@ -201,4 +206,5 @@ void BFS_free(struct bfs_struct* s){
 	free(s->tri);
 	free(s->sim);
 	free(s->bt);
+	free(s->pin);
 }
