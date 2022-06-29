@@ -23,5 +23,15 @@ int main(){
 		printf("\n");
 	}
 	printf("\n");
+	printf("\n");
+	printf("sim:\n");
+	for (int i = 0; i < (s.f); i++){
+		for (int j = 0; j < 3; j++){
+			if (s.sim[i][j] == -1) printf("%d ", s.sim[i][j]);
+			else printf("%d  ", s.sim[i][j]);
+		}
+		printf("\n");
+	}
+	printf("\n");
 	BFS_free(&s);
 }

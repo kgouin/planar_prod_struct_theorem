@@ -42,6 +42,23 @@ void BFS_init(struct bfs_struct* s){
 	}
 
 	fclose(fd);
+	
+	fd = fopen("simplices.txt", "r");
+	if (!fd) exit(1);
+	
+	fscanf(fd, "%d", &(s->f));
+	s->sim = malloc((s->f)*sizeof(int*));
+	for (int k = 0; k < (s->f); k++){
+		s->sim[k] = malloc(3*sizeof(int));
+	}
+	
+	for (int k = 0; k < (s->f); k++){
+		for (int j = 0; j < 3; j++){
+			fscanf(fd, "%d", &s->sim[k][j]);
+		}
+	}
+
+	fclose(fd);
 }
 
 int* BFS(struct bfs_struct* s){
@@ -176,10 +193,12 @@ void BFS_free(struct bfs_struct* s){
 	for (int k = 0; k < (s->f); k++){
 		free(s->ct[k]);
 		free(s->tri[k]);
+		free(s->sim[k]);
 	}
 	free(s->al);
 	free(s->il);
 	free(s->ct);
 	free(s->tri);
+	free(s->sim);
 	free(s->bt);
 }
