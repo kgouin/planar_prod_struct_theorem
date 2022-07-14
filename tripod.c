@@ -22,23 +22,36 @@ void tripod_init(struct bfs_struct* b, struct rmq_struct* r){
 	acc[b->sim[0][2]] = (b->f)+2;
 
 	//start decomposition with the three triangles adjacent to outer face
-	tripod(b, r, b->tri[0][0], b->tri[0][1], b->tri[0][2], acc);
-	acc[5] = 2;
-	tripod(b, r, 3, 8, 5, acc);
+	tripod(b, r, acc[b->sim[0][2]], b->tri[0][0], b->tri[0][1], b->tri[0][2], acc);
 }
 
-int* tripod(struct bfs_struct* b, struct rmq_struct* r, int f1, int f2, int f3, int* acc){ //recursive function
-
-	int sp; //this will hold our sperner triangle
+int* tripod(struct bfs_struct* b, struct rmq_struct* r, int old_sp, int f1, int f2, int f3, int* acc){ //recursive function
+	//definitions
+	int sp;
 	int u;
-	int y;
-	int v;
+	int v_a;
+	int v_a_next;
+	int v_a_l;
+	int v_a_r;
+	int v_a_op;
+	int y_a;
+	int v_b;
+	int v_b_next;
+	int v_b_l;
+	int v_b_r;
+	int v_b_op;
+	int y_b;
+	int v_c;
+	int v_c_next;
+	int v_c_l;
+	int v_c_r;
+	int v_c_op;
+	int y_c;
 
-	if (f1 == f2 && f1 == f3 && f2 == f3){
-		return acc;
-	}
+	if (f1 == f2 && f1 == f3 && f2 == f3) return 0;
 
 	else if (f1 != f2 && f1 != f3 && f2 != f3){
+		//find sperner triangle
 		if (LCA_query(r, f1, f2) == LCA_query(r, f1, f3) && LCA_query(r, f1, f3) == LCA_query(r, f2, f3)) sp = LCA_query(r, f1, f2);
 		else {
 			if (LCA_query(r, f1, f2) == LCA_query(r, f1, f3)) sp = LCA_query(r, f2, f3);
@@ -46,99 +59,244 @@ int* tripod(struct bfs_struct* b, struct rmq_struct* r, int f1, int f2, int f3, 
 			else if (LCA_query(r, f1, f3) == LCA_query(r, f2, f3)) sp = LCA_query(r, f1, f2);
 		}
 
-		//store tripod (aka. for each vertex incident to sp, walk up bfs tree until you hit an edge belonging to another tripod)
-		//b->sim[sp][0], b->sim[sp][1], b->sim[sp][2] are the vertices incident to our sperner triangle
+		//store tripod
+		v_a_op = b->tri[sp][0];
+		v_b_op = b->tri[sp][1];
+		v_c_op = b->tri[sp][2];
+
 		u = b->sim[sp][0];
+		v_a = u;
+		v_a_next = 0;
 		while (acc[u] == -1){
 			acc[u] = sp;
-			u = b->bt[b->sim[sp][0]];
+			v_a = u;
+			u = b->bt[u];
+			v_a_next = u;
 		}
+		v_a_l = b->il[v_a][b->pin[v_a]];
+		(b->pin[v_a] == 0) ? (y_a = (b->n[v_a])-1) : (y_a = b->pin[v_a]-1);
+		v_a_r = b->il[v_a][y_a];
+
 		u = b->sim[sp][1];
+		v_b = u;
+		v_b_next = 0;
 		while (acc[u] == -1){
 			acc[u] = sp;
-			u = b->bt[b->sim[sp][1]];
+			v_b = u;
+			u = b->bt[u];
+			v_b_next = u;
 		}
+		v_b_l = b->il[v_b][b->pin[v_b]];
+		(b->pin[v_b] == 0) ? (y_b = (b->n[v_b])-1) : (y_b = b->pin[v_b]-1);
+		v_b_r = b->il[v_b][y_b];
+
 		u = b->sim[sp][2];
+		v_c = u;
+		v_c_next = 0;
 		while (acc[u] == -1){
 			acc[u] = sp;
-			u = b->bt[b->sim[sp][2]];
+			v_c = u;
+			u = b->bt[u];
+			v_c_next = u;
 		}
+		v_c_l = b->il[v_c][b->pin[v_c]];
+		(b->pin[v_c] == 0) ? (y_c = (b->n[v_c])-1) : (y_c = b->pin[v_c]-1);
+		v_c_r = b->il[v_c][y_c];
+
+		printf("\n");
+		printf("%d is one of our sperner triangles\n", sp); //sperner triangles are correctly identified
+		printf("acc = ");
+		for (int k = 0; k < (b->v); k++){
+			printf("%d ", acc[k]);
+		}
+		printf("\n");
 
 		//recurse
-		
-		//printing the appropriate faces of vertices which belong to sp by walking up the bfs tree
-		printf("\n");
-
-		//take the last vertex we see before we hit either the root or another tripod when walking up the bfs
-		//using that vertex, find left and right faces
-		v = b->sim[sp][0];
-		while (b->bt[b->bt[v]] != -2 && (acc[b->bt[v]] == -1 || acc[b->bt[v]] == sp)){
-			v = b->bt[v];
+		if (acc[v_a] == sp || acc[v_b] == sp){
+			if (old_sp < b->f && acc[b->sim[sp][0]] != acc[b->sim[sp][1]]){
+				if (acc[v_c_next] == old_sp){
+					printf("sub-problem 1 at vertex %d will be on faces %d, %d, %d\n", v_a, v_a_op, v_a_l, f1);
+					tripod(b, r, sp, v_a_op, v_a_l, f1, acc);
+				}
+				else if (acc[v_a_next] == old_sp){
+					printf("sub-problem 1 at vertex %d will be on faces %d, %d, %d\n", v_a, v_a_op, v_a_l, f2);
+					tripod(b, r, sp, v_a_op, v_a_l, f2, acc);
+				}
+				else if (acc[v_b_next] == old_sp){
+					printf("sub-problem 1 at vertex %d will be on faces %d, %d, %d\n", v_a, v_a_op, v_a_l, f3);
+					tripod(b, r, sp, v_a_op, v_a_l, f3, acc);
+				}
+			}
+			else {
+				printf("sub-problem 1 at vertex %d will be on faces %d, %d, %d\n", v_a, v_a_op, v_a_l, v_b_r);
+				tripod(b, r, sp, v_a_op, v_a_l, v_b_r, acc);
+			}
 		}
-		printf("sp vertex a = %d\n", v);
-		printf("left face = %d\n", b->il[v][b->pin[v]]);
-		(b->pin[v] == 0) ? (y = (b->n[v])-1) : (y = b->pin[v]-1);
-		printf("right face = %d\n", b->il[v][y]);
-		printf("opposite face = %d\n", b->tri[sp][0]);
 
-		v = b->sim[sp][1];
-		while (b->bt[b->bt[v]] != -2 && (acc[b->bt[v]] == -1 || acc[b->bt[v]] == sp)){
-			v = b->bt[v];
+		if (acc[v_b] == sp || acc[v_c] == sp){
+			if (old_sp < b->f && acc[b->sim[sp][1]] != acc[b->sim[sp][2]]){
+				if (acc[v_b_next] == old_sp){
+					printf("sub-problem 2 at vertex %d will be on faces %d, %d, %d\n", v_b, v_b_op, v_b_l, f1);
+					tripod(b, r, sp, v_b_op, v_b_l, f1, acc);
+				}
+				else if (acc[v_c_next] == old_sp){
+					printf("sub-problem 2 at vertex %d will be on faces %d, %d, %d\n", v_b, v_b_op, v_b_l, f2);
+					tripod(b, r, sp, v_b_op, v_b_l, f2, acc);
+				}
+				else if (acc[v_a_next] == old_sp){
+					printf("sub-problem 2 at vertex %d will be on faces %d, %d, %d\n", v_b, v_b_op, v_b_l, f3);
+					tripod(b, r, sp, v_b_op, v_b_l, f3, acc);
+				}
+			}
+			else {
+				printf("sub-problem 2 at vertex %d will be on faces %d, %d, %d\n", v_b, v_b_op, v_b_l, v_c_r);
+				tripod(b, r, sp, v_b_op, v_b_l, v_c_r, acc);
+			}
 		}
-		printf("sp vertex b = %d\n", v);
-		printf("left face = %d\n", b->il[v][b->pin[v]]);
-		(b->pin[v] == 0) ? (y = (b->n[v])-1) : (y = b->pin[v]-1);
-		printf("right face = %d\n", b->il[v][y]);
-		printf("opposite face = %d\n", b->tri[sp][1]);
 
-		v = b->sim[sp][2];
-		while (b->bt[b->bt[v]] != -2 && (acc[b->bt[v]] == -1 || acc[b->bt[v]] == sp)){
-			v = b->bt[v];
+		if (acc[v_c] == sp || acc[v_a] == sp){
+			if (old_sp < b->f && acc[b->sim[sp][2]] != acc[b->sim[sp][0]]){
+				if (acc[v_a_next] == old_sp){
+					printf("sub-problem 3 at vertex %d will be on faces %d, %d, %d\n", v_c, v_c_op, v_c_l, f1);
+					tripod(b, r, sp, v_c_op, v_c_l, f1, acc);
+				}
+				else if (acc[v_b_next] == old_sp){
+					printf("sub-problem 3 at vertex %d will be on faces %d, %d, %d\n", v_c, v_c_op, v_c_l, f2);
+					tripod(b, r, sp, v_c_op, v_c_l, f2, acc);
+				}
+				else if (acc[v_c_next] == old_sp){
+					printf("sub-problem 3 at vertex %d will be on faces %d, %d, %d\n", v_c, v_c_op, v_c_l, f3);
+					tripod(b, r, sp, v_c_op, v_c_l, f3, acc);
+				}
+			}
+			else {
+				printf("sub-problem 3 at vertex %d will be on faces %d, %d, %d\n", v_c, v_c_op, v_c_l, v_a_r);
+				tripod(b, r, sp, v_c_op, v_c_l, v_a_r, acc);
+			}
 		}
-		printf("sp vertex c = %d\n", v);
-		printf("left face = %d\n", b->il[v][b->pin[v]]);
-		(b->pin[v] == 0) ? (y = (b->n[v])-1) : (y = b->pin[v]-1);
-		printf("right face = %d\n", b->il[v][y]);
-		printf("opposite face = %d\n", b->tri[sp][2]);
-
-		printf("\n");
-
-		//we need to associate the faces encountered to the appropriate subproblems
 	}
 
-	else { //two of the three faces are the same, the other is different
-		//do not perform lca queries. simply take one of the three input faces as your sperner triangle
+	else {
+		//find sperner triangle
 		sp = f1;
 
-		//store tripod (aka. for each vertex incident to sp, walk up bfs tree until you hit an edge belonging to another tripod)
-		//b->sim[sp][0], b->sim[sp][1], b->sim[sp][2] are the vertices incident to our sperner triangle
+		//store tripod
+		v_a_op = b->tri[sp][0];
+		v_b_op = b->tri[sp][1];
+		v_c_op = b->tri[sp][2];
+
 		u = b->sim[sp][0];
+		v_a = u;
+		v_a_next = 0;
 		while (acc[u] == -1){
 			acc[u] = sp;
-			u = b->bt[b->sim[sp][0]];
+			v_a = u;
+			u = b->bt[u];
+			v_a_next = u;
 		}
+		v_a_l = b->il[v_a][b->pin[v_a]];
+		(b->pin[v_a] == 0) ? (y_a = (b->n[v_a])-1) : (y_a = b->pin[v_a]-1);
+		v_a_r = b->il[v_a][y_a];
+
 		u = b->sim[sp][1];
+		v_b = u;
+		v_b_next = 0;
 		while (acc[u] == -1){
 			acc[u] = sp;
-			u = b->bt[b->sim[sp][1]];
+			v_b = u;
+			u = b->bt[u];
+			v_b_next = u;
 		}
+		v_b_l = b->il[v_b][b->pin[v_b]];
+		(b->pin[v_b] == 0) ? (y_b = (b->n[v_b])-1) : (y_b = b->pin[v_b]-1);
+		v_b_r = b->il[v_b][y_b];
+
 		u = b->sim[sp][2];
+		v_c = u;
+		v_c_next = 0;
 		while (acc[u] == -1){
 			acc[u] = sp;
-			u = b->bt[b->sim[sp][2]];
+			v_c = u;
+			u = b->bt[u];
+			v_c_next = u;
 		}
+		v_c_l = b->il[v_c][b->pin[v_c]];
+		(b->pin[v_c] == 0) ? (y_c = (b->n[v_c])-1) : (y_c = b->pin[v_c]-1);
+		v_c_r = b->il[v_c][y_c];
+
+		printf("\n");
+		printf("%d is one of our sperner triangles\n", sp); //sperner triangles are correctly identified
+		printf("acc = ");
+		for (int k = 0; k < (b->v); k++){
+			printf("%d ", acc[k]);
+		}
+		printf("\n");
 
 		//recurse
+		if (acc[v_a] == sp || acc[v_b] == sp){
+			if (old_sp < b->f && acc[b->sim[sp][0]] != acc[b->sim[sp][1]]){
+				if (acc[v_c_next] == old_sp){
+					printf("sub-problem 1 at vertex %d will be on faces %d, %d, %d\n", v_a, v_a_op, v_a_l, f1);
+					tripod(b, r, sp, v_a_op, v_a_l, f1, acc);
+				}
+				else if (acc[v_a_next] == old_sp){
+					printf("sub-problem 1 at vertex %d will be on faces %d, %d, %d\n", v_a, v_a_op, v_a_l, f2);
+					tripod(b, r, sp, v_a_op, v_a_l, f2, acc);
+				}
+				else if (acc[v_b_next] == old_sp){
+					printf("sub-problem 1 at vertex %d will be on faces %d, %d, %d\n", v_a, v_a_op, v_a_l, f3);
+					tripod(b, r, sp, v_a_op, v_a_l, f3, acc);
+				}
+			}
+			else {
+				printf("sub-problem 1 at vertex %d will be on faces %d, %d, %d\n", v_a, v_a_op, v_a_l, v_b_r);
+				tripod(b, r, sp, v_a_op, v_a_l, v_b_r, acc);
+			}
+		}
+
+		if (acc[v_b] == sp || acc[v_c] == sp){
+			if (old_sp < b->f && acc[b->sim[sp][1]] != acc[b->sim[sp][2]]){
+				if (acc[v_b_next] == old_sp){
+					printf("sub-problem 2 at vertex %d will be on faces %d, %d, %d\n", v_b, v_b_op, v_b_l, f1);
+					tripod(b, r, sp, v_b_op, v_b_l, f1, acc);
+				}
+				else if (acc[v_c_next] == old_sp){
+					printf("sub-problem 2 at vertex %d will be on faces %d, %d, %d\n", v_b, v_b_op, v_b_l, f2);
+					tripod(b, r, sp, v_b_op, v_b_l, f2, acc);
+				}
+				else if (acc[v_a_next] == old_sp){
+					printf("sub-problem 2 at vertex %d will be on faces %d, %d, %d\n", v_b, v_b_op, v_b_l, f3);
+					tripod(b, r, sp, v_b_op, v_b_l, f3, acc);
+				}
+			}
+			else {
+				printf("sub-problem 2 at vertex %d will be on faces %d, %d, %d\n", v_b, v_b_op, v_b_l, v_c_r);
+				tripod(b, r, sp, v_b_op, v_b_l, v_c_r, acc);
+			}
+		}
+
+		if (acc[v_c] == sp || acc[v_a] == sp){
+			if (old_sp < b->f && acc[b->sim[sp][2]] != acc[b->sim[sp][0]]){
+				if (acc[v_a_next] == old_sp){
+					printf("sub-problem 3 at vertex %d will be on faces %d, %d, %d\n", v_c, v_c_op, v_c_l, f1);
+					tripod(b, r, sp, v_c_op, v_c_l, f1, acc);
+				}
+				else if (acc[v_b_next] == old_sp){
+					printf("sub-problem 3 at vertex %d will be on faces %d, %d, %d\n", v_c, v_c_op, v_c_l, f2);
+					tripod(b, r, sp, v_c_op, v_c_l, f2, acc);
+				}
+				else if (acc[v_c_next] == old_sp){
+					printf("sub-problem 3 at vertex %d will be on faces %d, %d, %d\n", v_c, v_c_op, v_c_l, f3);
+					tripod(b, r, sp, v_c_op, v_c_l, f3, acc);
+				}
+			}
+			else {
+				printf("sub-problem 3 at vertex %d will be on faces %d, %d, %d\n", v_c, v_c_op, v_c_l, v_a_r);
+				tripod(b, r, sp, v_c_op, v_c_l, v_a_r, acc);
+			}
+		}
 	}
 
-	printf("%d is one of our sperner triangles\n", sp); //sperner triangles are correctly identified
-	
-	printf("acc = ");
-	for (int k = 0; k < (b->v); k++){
-		printf("%d ", acc[k]);
-	}
 	printf("\n");
-	printf("\n--------------------------------\n");
-
 	return 0;
 }
