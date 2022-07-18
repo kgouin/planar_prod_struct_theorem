@@ -10,6 +10,11 @@ void tripod_init(struct bfs_struct* b, struct rmq_struct* r){
 	BFS(b);
 	LCA_init(r, b->ct, (2*(b->f))-1);
 	printf("initialization complete\n");
+	printf("bfs tree = ");
+	for (int k = 0; k < b->v; k++){
+		printf("%d ", b->bt[k]);
+	}
+	printf("\n");
 
 	int* acc = malloc((b->v)*sizeof(int)); //memory leak
 
@@ -113,64 +118,59 @@ int* tripod(struct bfs_struct* b, struct rmq_struct* r, int old_sp, int f1, int 
 
 		//recurse
 		if (acc[v_a] == sp || acc[v_b] == sp){
-			if (old_sp < b->f && acc[b->sim[sp][0]] != acc[b->sim[sp][1]]){
-				if (acc[v_c_next] == old_sp){
-					printf("sub-problem 1 at vertex %d will be on faces %d, %d, %d\n", v_a, v_a_op, v_a_l, f1);
+				if (acc[v_c] == old_sp && acc[v_c_next] == old_sp){
+					printf("sub-problem 1 for sp %d at vertex %d will be on faces %d, %d, %d\n", sp, v_a, v_a_op, v_a_l, f1);
 					tripod(b, r, sp, v_a_op, v_a_l, f1, acc);
 				}
-				else if (acc[v_a_next] == old_sp){
-					printf("sub-problem 1 at vertex %d will be on faces %d, %d, %d\n", v_a, v_a_op, v_a_l, f2);
+				else if (acc[v_a] == old_sp && acc[v_a_next] == old_sp){
+					printf("sub-problem 1 for sp %d at vertex %d will be on faces %d, %d, %d\n", sp, v_a, v_a_op, v_a_l, f2);
 					tripod(b, r, sp, v_a_op, v_a_l, f2, acc);
 				}
-				else if (acc[v_b_next] == old_sp){
-					printf("sub-problem 1 at vertex %d will be on faces %d, %d, %d\n", v_a, v_a_op, v_a_l, f3);
+				else if (acc[v_b] == old_sp && acc[v_b_next] == old_sp){
+					printf("sub-problem 1 for sp %d at vertex %d will be on faces %d, %d, %d\n", sp, v_a, v_a_op, v_a_l, f3);
 					tripod(b, r, sp, v_a_op, v_a_l, f3, acc);
 				}
-			}
 			else {
-				printf("sub-problem 1 at vertex %d will be on faces %d, %d, %d\n", v_a, v_a_op, v_a_l, v_b_r);
+				printf("sub-problem 1 for sp %d at vertex %d will be on faces %d, %d, %d\n", sp, v_a, v_a_op, v_a_l, v_b_r);
 				tripod(b, r, sp, v_a_op, v_a_l, v_b_r, acc);
 			}
 		}
 
 		if (acc[v_b] == sp || acc[v_c] == sp){
-			if (old_sp < b->f && acc[b->sim[sp][1]] != acc[b->sim[sp][2]]){
-				if (acc[v_b_next] == old_sp){
-					printf("sub-problem 2 at vertex %d will be on faces %d, %d, %d\n", v_b, v_b_op, v_b_l, f1);
+				if (acc[v_b] == old_sp && acc[v_b_next] == old_sp){
+					printf("sub-problem 2 for sp %d at vertex %d will be on faces %d, %d, %d\n", sp, v_b, v_b_op, v_b_l, f1);
 					tripod(b, r, sp, v_b_op, v_b_l, f1, acc);
 				}
-				else if (acc[v_c_next] == old_sp){
-					printf("sub-problem 2 at vertex %d will be on faces %d, %d, %d\n", v_b, v_b_op, v_b_l, f2);
+				else if (acc[v_c] == old_sp && acc[v_c_next] == old_sp){
+					printf("sub-problem 2 for sp %d at vertex %d will be on faces %d, %d, %d\n", sp, v_b, v_b_op, v_b_l, f2);
 					tripod(b, r, sp, v_b_op, v_b_l, f2, acc);
 				}
-				else if (acc[v_a_next] == old_sp){
-					printf("sub-problem 2 at vertex %d will be on faces %d, %d, %d\n", v_b, v_b_op, v_b_l, f3);
+				else if (acc[v_a] == old_sp && acc[v_a_next] == old_sp){
+					printf("sub-problem 2 for sp %d at vertex %d will be on faces %d, %d, %d\n", sp, v_b, v_b_op, v_b_l, f3);
 					tripod(b, r, sp, v_b_op, v_b_l, f3, acc);
 				}
-			}
 			else {
-				printf("sub-problem 2 at vertex %d will be on faces %d, %d, %d\n", v_b, v_b_op, v_b_l, v_c_r);
+				printf("sub-problem 2 for sp %d at vertex %d will be on faces %d, %d, %d\n", sp, v_b, v_b_op, v_b_l, v_c_r);
 				tripod(b, r, sp, v_b_op, v_b_l, v_c_r, acc);
 			}
 		}
 
-		if (acc[v_c] == sp || acc[v_a] == sp){
-			if (old_sp < b->f && acc[b->sim[sp][2]] != acc[b->sim[sp][0]]){
-				if (acc[v_a_next] == old_sp){
-					printf("sub-problem 3 at vertex %d will be on faces %d, %d, %d\n", v_c, v_c_op, v_c_l, f1);
+		if (acc[v_c] == sp || acc[v_a] == sp){ //check that the subproblem we're looking at est pas colle contre d'autres tripods
+											   //aka. that there is indeed a subproblem here
+				if (acc[v_a] == old_sp && acc[v_a_next] == old_sp){
+					printf("sub-problem 3 for sp %d at vertex %d will be on faces %d, %d, %d\n", sp, v_c, v_c_op, v_c_l, f1);
 					tripod(b, r, sp, v_c_op, v_c_l, f1, acc);
 				}
-				else if (acc[v_b_next] == old_sp){
-					printf("sub-problem 3 at vertex %d will be on faces %d, %d, %d\n", v_c, v_c_op, v_c_l, f2);
+				else if (acc[v_b] == old_sp && acc[v_b_next] == old_sp){
+					printf("sub-problem 3 for sp %d at vertex %d will be on faces %d, %d, %d\n", sp, v_c, v_c_op, v_c_l, f2);
 					tripod(b, r, sp, v_c_op, v_c_l, f2, acc);
 				}
-				else if (acc[v_c_next] == old_sp){
-					printf("sub-problem 3 at vertex %d will be on faces %d, %d, %d\n", v_c, v_c_op, v_c_l, f3);
+				else if (acc[v_c] == old_sp && acc[v_c_next] == old_sp){
+					printf("sub-problem 3 for sp %d at vertex %d will be on faces %d, %d, %d\n", sp, v_c, v_c_op, v_c_l, f3);
 					tripod(b, r, sp, v_c_op, v_c_l, f3, acc);
 				}
-			}
 			else {
-				printf("sub-problem 3 at vertex %d will be on faces %d, %d, %d\n", v_c, v_c_op, v_c_l, v_a_r);
+				printf("sub-problem 3 for sp %d at vertex %d will be on faces %d, %d, %d\n", sp, v_c, v_c_op, v_c_l, v_a_r);
 				tripod(b, r, sp, v_c_op, v_c_l, v_a_r, acc);
 			}
 		}
@@ -234,64 +234,59 @@ int* tripod(struct bfs_struct* b, struct rmq_struct* r, int old_sp, int f1, int 
 
 		//recurse
 		if (acc[v_a] == sp || acc[v_b] == sp){
-			if (old_sp < b->f && acc[b->sim[sp][0]] != acc[b->sim[sp][1]]){
-				if (acc[v_c_next] == old_sp){
-					printf("sub-problem 1 at vertex %d will be on faces %d, %d, %d\n", v_a, v_a_op, v_a_l, f1);
+				if (acc[v_c] == old_sp && acc[v_c_next] == old_sp){
+					printf("sub-problem 1 for sp %d at vertex %d will be on faces %d, %d, %d\n", sp, v_a, v_a_op, v_a_l, f1);
 					tripod(b, r, sp, v_a_op, v_a_l, f1, acc);
 				}
-				else if (acc[v_a_next] == old_sp){
-					printf("sub-problem 1 at vertex %d will be on faces %d, %d, %d\n", v_a, v_a_op, v_a_l, f2);
+				else if (acc[v_a] == old_sp && acc[v_a_next] == old_sp){
+					printf("sub-problem 1 for sp %d at vertex %d will be on faces %d, %d, %d\n", sp, v_a, v_a_op, v_a_l, f2);
 					tripod(b, r, sp, v_a_op, v_a_l, f2, acc);
 				}
-				else if (acc[v_b_next] == old_sp){
-					printf("sub-problem 1 at vertex %d will be on faces %d, %d, %d\n", v_a, v_a_op, v_a_l, f3);
+				else if (acc[v_b] == old_sp && acc[v_b_next] == old_sp){
+					printf("sub-problem 1 for sp %d at vertex %d will be on faces %d, %d, %d\n", sp, v_a, v_a_op, v_a_l, f3);
 					tripod(b, r, sp, v_a_op, v_a_l, f3, acc);
 				}
-			}
 			else {
-				printf("sub-problem 1 at vertex %d will be on faces %d, %d, %d\n", v_a, v_a_op, v_a_l, v_b_r);
+				printf("sub-problem 1 for sp %d at vertex %d will be on faces %d, %d, %d\n", sp, v_a, v_a_op, v_a_l, v_b_r);
 				tripod(b, r, sp, v_a_op, v_a_l, v_b_r, acc);
 			}
 		}
 
 		if (acc[v_b] == sp || acc[v_c] == sp){
-			if (old_sp < b->f && acc[b->sim[sp][1]] != acc[b->sim[sp][2]]){
-				if (acc[v_b_next] == old_sp){
-					printf("sub-problem 2 at vertex %d will be on faces %d, %d, %d\n", v_b, v_b_op, v_b_l, f1);
+				if (acc[v_b] == old_sp && acc[v_b_next] == old_sp){
+					printf("sub-problem 2 for sp %d at vertex %d will be on faces %d, %d, %d\n", sp, v_b, v_b_op, v_b_l, f1);
 					tripod(b, r, sp, v_b_op, v_b_l, f1, acc);
 				}
-				else if (acc[v_c_next] == old_sp){
-					printf("sub-problem 2 at vertex %d will be on faces %d, %d, %d\n", v_b, v_b_op, v_b_l, f2);
+				else if (acc[v_c] == old_sp && acc[v_c_next] == old_sp){
+					printf("sub-problem 2 for sp %d at vertex %d will be on faces %d, %d, %d\n", sp, v_b, v_b_op, v_b_l, f2);
 					tripod(b, r, sp, v_b_op, v_b_l, f2, acc);
 				}
-				else if (acc[v_a_next] == old_sp){
-					printf("sub-problem 2 at vertex %d will be on faces %d, %d, %d\n", v_b, v_b_op, v_b_l, f3);
+				else if (acc[v_a] == old_sp && acc[v_a_next] == old_sp){
+					printf("sub-problem 2 for sp %d at vertex %d will be on faces %d, %d, %d\n", sp, v_b, v_b_op, v_b_l, f3);
 					tripod(b, r, sp, v_b_op, v_b_l, f3, acc);
 				}
-			}
 			else {
-				printf("sub-problem 2 at vertex %d will be on faces %d, %d, %d\n", v_b, v_b_op, v_b_l, v_c_r);
+				printf("sub-problem 2 for sp %d at vertex %d will be on faces %d, %d, %d\n", sp, v_b, v_b_op, v_b_l, v_c_r);
 				tripod(b, r, sp, v_b_op, v_b_l, v_c_r, acc);
 			}
 		}
 
-		if (acc[v_c] == sp || acc[v_a] == sp){
-			if (old_sp < b->f && acc[b->sim[sp][2]] != acc[b->sim[sp][0]]){
-				if (acc[v_a_next] == old_sp){
-					printf("sub-problem 3 at vertex %d will be on faces %d, %d, %d\n", v_c, v_c_op, v_c_l, f1);
+		if (acc[v_c] == sp || acc[v_a] == sp){ //check that the subproblem we're looking at est pas colle contre d'autres tripods
+											   //aka. that there is indeed a subproblem here
+				if (acc[v_a] == old_sp && acc[v_a_next] == old_sp){
+					printf("sub-problem 3 for sp %d at vertex %d will be on faces %d, %d, %d\n", sp, v_c, v_c_op, v_c_l, f1);
 					tripod(b, r, sp, v_c_op, v_c_l, f1, acc);
 				}
-				else if (acc[v_b_next] == old_sp){
-					printf("sub-problem 3 at vertex %d will be on faces %d, %d, %d\n", v_c, v_c_op, v_c_l, f2);
+				else if (acc[v_b] == old_sp && acc[v_b_next] == old_sp){
+					printf("sub-problem 3 for sp %d at vertex %d will be on faces %d, %d, %d\n", sp, v_c, v_c_op, v_c_l, f2);
 					tripod(b, r, sp, v_c_op, v_c_l, f2, acc);
 				}
-				else if (acc[v_c_next] == old_sp){
-					printf("sub-problem 3 at vertex %d will be on faces %d, %d, %d\n", v_c, v_c_op, v_c_l, f3);
+				else if (acc[v_c] == old_sp && acc[v_c_next] == old_sp){
+					printf("sub-problem 3 for sp %d at vertex %d will be on faces %d, %d, %d\n", sp, v_c, v_c_op, v_c_l, f3);
 					tripod(b, r, sp, v_c_op, v_c_l, f3, acc);
 				}
-			}
 			else {
-				printf("sub-problem 3 at vertex %d will be on faces %d, %d, %d\n", v_c, v_c_op, v_c_l, v_a_r);
+				printf("sub-problem 3 for sp %d at vertex %d will be on faces %d, %d, %d\n", sp, v_c, v_c_op, v_c_l, v_a_r);
 				tripod(b, r, sp, v_c_op, v_c_l, v_a_r, acc);
 			}
 		}
