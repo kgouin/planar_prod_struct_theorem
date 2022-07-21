@@ -2,4 +2,4 @@
 #include"bfs.h"
 
 void tripod_init(struct bfs_struct*, struct rmq_struct*);
-int* tripod(struct bfs_struct*, struct rmq_struct*, int, int, int, int, int*);
+int* tripod(struct bfs_struct*, struct rmq_struct*, int, int, int, int*);
