@@ -28,15 +28,15 @@ struct tripod_decomposition_struct{
 void init(struct bfs_struct*, struct rmq_struct*, struct tripod_decomposition_struct*);
 
 void store_tripod(struct bfs_struct*, struct tripod_decomposition_struct*, int, int*);
+void abort();
 
 int* trichromatic_tripod(struct bfs_struct*, struct rmq_struct*, struct tripod_decomposition_struct*, int, int, int, int*, int*);
 void trichromatic_orient_subproblems(struct bfs_struct*, struct tripod_decomposition_struct*, int, int, int, int, int*);
 void trichromatic_decompose(struct bfs_struct*, struct rmq_struct*, struct tripod_decomposition_struct*, int, int, int, int, int*, int*);
 
-int* bichromatic_tripod(struct bfs_struct*, struct rmq_struct*, struct tripod_decomposition_struct*, int, int, int*, int*);
-void bichromatic_decompose(struct bfs_struct*, struct rmq_struct*, struct tripod_decomposition_struct*, int, int, int, int*, int*);
+int* bichromatic_tripod(struct bfs_struct* b, struct rmq_struct* r, struct tripod_decomposition_struct* t, int f1, int f2, int v1, int v2, int* acc, int* acc2);
 
-int* monochromatic_tripod(struct bfs_struct*, struct rmq_struct*, struct tripod_decomposition_struct*, int, int*, int*);
-void monochromatic_decompose(struct bfs_struct*, struct rmq_struct*, struct tripod_decomposition_struct*, int, int, int*, int*);
+//int* monochromatic_tripod(struct bfs_struct*, struct rmq_struct*, struct tripod_decomposition_struct*, int, int*, int*);
+//void monochromatic_decompose(struct bfs_struct*, struct rmq_struct*, struct tripod_decomposition_struct*, int, int, int*, int*);
 
 void tprint(struct tripod_decomposition_struct*);
