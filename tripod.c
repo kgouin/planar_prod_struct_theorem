@@ -471,7 +471,7 @@ int* bichromatic_tripod(struct bfs_struct* b, struct rmq_struct* r, struct tripo
 	//decompose
 
 	//v_a, v_b, v_c are the vertices that make up our sperner triangle
-	//check v_a, v_b, v_c to see who is equal to v1, v2
+	//check v_a, v_b, v_c to see which are equal to v1, v2
 	//we can then find the correct subproblems on which to recurse
 	int v_a_on_cycle_entry = 0; //boolean
 	int v_b_on_cycle_entry = 0; //boolean
@@ -483,26 +483,138 @@ int* bichromatic_tripod(struct bfs_struct* b, struct rmq_struct* r, struct tripo
 	if (v_b_on_cycle_entry) printf("v_b (%d) is on the cycle defining the subproblem\n", t->v_b);
 	if (v_c_on_cycle_entry) printf("v_c (%d) is on the cycle defining the subproblem\n", t->v_c);
 
-	if (v_a_on_cycle_entry && v_b_on_cycle_entry){
-		//
+	if (v_a_on_cycle_entry && v_b_on_cycle_entry){ //(blue & green problems in notebook drawings)
+		if (t->v_c_next != -1){ //if leg c is non-empty
+			if (t->v_c_next == t->v_a || t->v_c_next == t->v_b){ //if the path leading up the bfs tree from v_c leads to v_a or v_b
+				//(S1 in blue & green notebook drawings)
+				//one trichromatic subproblem
+			}
+			else { //if the path leading up the bfs tree from v_c does NOT lead to v_a or v_b
+				if (acc[t->v_c_next] == acc[t->v_a]){ //if the path leading up the bfs tree exits through colour of vertex a
+					//(S2 in blue & green notebook drawings)
+					//one trichromatic subproblem
+					//one bichromatic subproblem
+				}
+				if (acc[t->v_c_next] == acc[t->v_b]){ //if the path leading up the bfs tree exits through colour of vertex b
+					//(S3 in blue & green notebook drawings)
+					//one trichromatic subproblem
+					//one bichromatic subproblem
+				}
+				else abort();
+			}
+		}
+		else { //if leg c is empty
+			if (acc[t->v_c] == acc[t->v_a]){ //if vertex c is the same colour as vertex a
+				if (b->bt[t->v_c] == t->v_a || b->bt[t->v_a] == t->v_c){ //if v_a is the parent of v_c, or if v_c is the parent of v_a
+					//(S4 in blue & green notebook drawings)
+					//one bichromatic subproblem
+				}
+				else { //if v_a is not the parent of v_c, and if v_c is not the parent of v_a
+					if (sp != f2){
+						//(S5 in blue & green notebook drawings)
+						//one bichromatic subproblem
+						//one monochromatic subproblem
+					}
+					else { //if sp == f2
+						//(S6 in blue & green notebook drawings)
+						//one monochromatic subproblem
+					}
+				}
+			}
+			if (acc[t->v_c] == acc[t->v_b]){ //if vertex c is the same colour as vertex b
+				if (b->bt[t->v_c] == t->v_b || b->bt[t->v_b] == t->v_c){ //if v_b is the parent of v_c, or if v_c is the parent of v_b
+					//(S7 in blue & green notebook drawings)
+					//one bichromatic subproblem
+				}
+				else { //if v_b is not the parent of v_c, and if v_c is not the parent of v_b
+					if (sp != f2){
+						//(S8 in blue & green notebook drawings)
+						//one bichromatic subproblem
+						//one monochromatic subproblem
+					}
+					else { //if sp == f2
+						//(S9 in blue & green notebook drawings)
+						//one monochromatic subproblem
+					}
+				}
+			}
+			else abort();
+		}
 	}
-	else if (v_c_on_cycle_entry && v_a_on_cycle_entry){
-		//
+
+	else if (v_c_on_cycle_entry && v_a_on_cycle_entry){ //(red & orange problems in notebook drawings)
+		if (t->v_b_next != -1){ //if leg b is non-empty
+			if (t->v_b_next == t->v_c || t->v_b_next == t->v_a){ //if the path leading up the bfs tree from v_b leads to v_c or v_a
+				//(S1 in red & orange notebook drawings)
+				//one trichromatic subproblem
+			}
+			else { //if the path leading up the bfs tree from v_b does NOT lead to v_c or v_a
+				if (acc[t->v_b_next] == acc[t->v_c]){ //if the path leading up the bfs tree exits through colour of vertex c
+					//(S2 in red & orange notebook drawings)
+					//one trichromatic subproblem
+					//one bichromatic subproblem
+				}
+				if (acc[t->v_b_next] == acc[t->v_a]){ //if the path leading up the bfs tree exits through colour of vertex a
+					//(S3 in red & orange notebook drawings)
+					//one trichromatic subproblem
+					//one bichromatic subproblem
+				}
+				else abort();
+			}
+		}
+		else { //if leg b is empty
+			if (acc[t->v_b] == acc[t->v_c]){ //if vertex b is the same colour as vertex c
+				if (b->bt[t->v_b] == t->v_c || b->bt[t->v_c] == t->v_b){ //if v_c is the parent of v_b, or if v_b is the parent of v_c
+					//(S4 in red & orange notebook drawings)
+					//one bichromatic subproblem
+				}
+				else { //if v_c is not the parent of v_b, and if v_b is not the parent of v_c
+					if (sp != f2){
+						//(S5 in red & orange notebook drawings)
+						//one bichromatic subproblem
+						//one monochromatic subproblem
+					}
+					else { //if sp == f2
+						//(S6 in red & orange notebook drawings)
+						//one monochromatic subproblem
+					}
+				}
+			}
+			if (acc[t->v_b] == acc[t->v_a]){ //if vertex b is the same colour as vertex a
+				if (b->bt[t->v_b] == t->v_a || b->bt[t->v_a] == t->v_b){ //if v_a is the parent of v_b, or if v_b is the parent of v_a
+					//(S7 in red & orange notebook drawings)
+					//one bichromatic subproblem
+				}
+				else { //if v_a is not the parent of v_b, and if v_b is not the parent of v_a
+					if (sp != f2){
+						//(S8 in red & orange notebook drawings)
+						//one bichromatic subproblem
+						//one monochromatic subproblem
+					}
+					else { //if sp == f2
+						//(S9 in red & orange notebook drawings)
+						//one monochromatic subproblem
+					}
+				}
+			}
+			else abort();
+		}
 	}
+
 	else if (v_b_on_cycle_entry && v_c_on_cycle_entry){ //(purple & pink problems in notebook drawings)
 		if (t->v_a_next != -1){ //if leg a is non-empty
 			if (t->v_a_next == t->v_b || t->v_a_next == t->v_c){ //if the path leading up the bfs tree from v_a leads to v_b or v_c
-				//(S1 in notebook drawings)
+				//(S1 in purple & pink notebook drawings)
 				//one trichromatic subproblem
 			}
 			else { //if the path leading up the bfs tree from v_a does NOT lead to v_b or v_c
 				if (acc[t->v_a_next] == acc[t->v_b]){ //if the path leading up the bfs tree exits through colour of vertex b
-					//(S2 in notebook drawings)
+					//(S2 in purple & pink notebook drawings)
 					//one trichromatic subproblem
 					//one bichromatic subproblem
 				}
 				if (acc[t->v_a_next] == acc[t->v_c]){ //if the path leading up the bfs tree exits through colour of vertex c
-					//(S3 in notebook drawings)
+					//(S3 in purple & pink notebook drawings)
 					//one trichromatic subproblem
 					//one bichromatic subproblem
 				}
@@ -512,34 +624,34 @@ int* bichromatic_tripod(struct bfs_struct* b, struct rmq_struct* r, struct tripo
 		else { //if leg a is empty
 			if (acc[t->v_a] == acc[t->v_b]){ //if vertex a is the same colour as vertex b
 				if (b->bt[t->v_b] == t->v_a || b->bt[t->v_a] == t->v_b){ //if v_b is the parent of v_a, or if v_a is the parent of v_b
-					//(S4 in notebook drawings)
+					//(S4 in purple & pink notebook drawings)
 					//one bichromatic subproblem
 				}
 				else { //if v_b is not the parent of v_a, and if v_a is not the parent of v_b
 					if (sp != f2){
-						//(S5 in notebook drawings)
+						//(S5 in purple & pink notebook drawings)
 						//one bichromatic subproblem
 						//one monochromatic subproblem
 					}
 					else { //if sp == f2
-						//(S6 in notebook drawings)
+						//(S6 in purple & pink notebook drawings)
 						//one monochromatic subproblem
 					}
 				}
 			}
 			if (acc[t->v_a] == acc[t->v_c]){ //if vertex a is the same colour as vertex c
 				if (b->bt[t->v_c] == t->v_a || b->bt[t->v_a] == t->v_c){ //if v_c is the parent of v_a, or if v_a is the parent of v_c
-					//(S7 in notebook drawings)
+					//(S7 in purple & pink notebook drawings)
 					//one bichromatic subproblem
 				}
 				else { //if v_c is not the parent of v_a, and if v_a is not the parent of v_c
 					if (sp != f2){
-						//(S8 in notebook drawings)
+						//(S8 in purple & pink notebook drawings)
 						//one bichromatic subproblem
 						//one monochromatic subproblem
 					}
 					else { //if sp == f2
-						//(S9 in notebook drawings)
+						//(S9 in purple & pink notebook drawings)
 						//one monochromatic subproblem
 					}
 				}
