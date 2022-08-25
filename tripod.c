@@ -338,8 +338,18 @@ void trichromatic_decompose(struct bfs_struct* b, struct rmq_struct* r, struct t
 		}
 		else {
 			printf("subproblem a for sp %d is bichromatic\n", sp);
-			printf("subproblem a for sp %d will be on faces %d, %d\n", sp, v_a_op, v_a_mirror);
-			bichromatic_tripod( b, r, t, v_a_op, v_a_mirror, v_a, v_b, acc, acc2);
+			printf("subproblem a for sp %d will be on faces %d, %d\n", sp, v_a_mirror, v_a_op);
+			int v1 = -1;
+			int v2 = -1;
+			for (int i = 0; i < 3; i++){
+				for (int j = 0; j < 3; j++){
+					if (b->sim[sp][i] == b->sim[v_a_mirror][j]){
+						if (v1 == -1) v1 = b->sim[v_a_mirror][j];
+						else if (v2 == -1) v2 = b->sim[v_a_mirror][j];
+					}
+				}
+			}
+			bichromatic_tripod( b, r, t, v_a_mirror, v_a_op, v1, v2, acc, acc2);
 			a_flag = 1;
 		}
 	}
@@ -378,8 +388,18 @@ void trichromatic_decompose(struct bfs_struct* b, struct rmq_struct* r, struct t
 			int value;
 			(a_flag) ? (value = v_b_mirror) : (value = v_a_mirror); //problem here
 			printf("subproblem b for sp %d is bichromatic\n", sp);
-			printf("subproblem b for sp %d will be on faces %d, %d\n", sp, v_b_op, value);
-			bichromatic_tripod( b, r, t, v_b_op, value, v_b, v_c, acc, acc2);
+			printf("subproblem b for sp %d will be on faces %d, %d\n", sp, value, v_b_op);
+			int v1 = -1;
+			int v2 = -1;
+			for (int i = 0; i < 3; i++){
+				for (int j = 0; j < 3; j++){
+					if (b->sim[sp][i] == b->sim[value][j]){
+						if (v1 == -1) v1 = b->sim[value][j];
+						else if (v2 == -1) v2 = b->sim[value][j];
+					}
+				}
+			}
+			bichromatic_tripod( b, r, t, value, v_b_op, v1, v2, acc, acc2);
 			b_flag = 1;
 		}
 	}
@@ -438,10 +458,19 @@ void trichromatic_decompose(struct bfs_struct* b, struct rmq_struct* r, struct t
 			printf("v_a_op = %d\n", v_a_op);
 			printf("v_b_op = %d\n", v_b_op);
 			printf("v_c_op = %d\n", v_c_op);
-			//printf("v_a_mirror = %d, v_b_mirror = %d, v_c_mirror = %d\n", v_a_mirror, v_b_mirror, v_c_mirror);
 			printf("subproblem c for sp %d is bichromatic\n", sp);
-			printf("subproblem c for sp %d will be on faces %d, %d\n", sp, v_c_op, value);
-			bichromatic_tripod( b, r, t, v_c_op, value, v_c, v_a, acc, acc2);
+			printf("subproblem c for sp %d will be on faces %d, %d\n", sp, value, v_c_op);
+			int v1 = -1;
+			int v2 = -1;
+			for (int i = 0; i < 3; i++){
+				for (int j = 0; j < 3; j++){
+					if (b->sim[sp][i] == b->sim[value][j]){
+						if (v1 == -1) v1 = b->sim[value][j];
+						else if (v2 == -1) v2 = b->sim[value][j];
+					}
+				}
+			}
+			bichromatic_tripod( b, r, t, value, v_c_op, v1, v2, acc, acc2);
 		}
 	}
 }
@@ -470,7 +499,7 @@ int* bichromatic_tripod(struct bfs_struct* b, struct rmq_struct* r, struct tripo
 
 	//decompose
 
-	//v_a, v_b, v_c are the vertices that make up our sperner triangle
+	//two of {v_a, v_b, v_c} are vertices that make up our sperner triangle
 	//check v_a, v_b, v_c to see which are equal to v1, v2
 	//we can then find the correct subproblems on which to recurse
 	int v_a_on_cycle_entry = 0; //boolean
@@ -479,26 +508,57 @@ int* bichromatic_tripod(struct bfs_struct* b, struct rmq_struct* r, struct tripo
 	if (t->v_a == v1 || t->v_a == v2) v_a_on_cycle_entry = 1;
 	if (t->v_b == v1 || t->v_b == v2) v_b_on_cycle_entry = 1;
 	if (t->v_c == v1 || t->v_c == v2) v_c_on_cycle_entry = 1;
+
+	//printf("v_a = %d, v_b = %d, v_c = %d\n", t->v_a, t->v_b, t->v_c);
+	//printf("v1 = %d, v2 = %d\n", v1, v2);
+	//printf("v_a_on_cycle_entry = %d, v_b_on_cycle_entry = %d, v_c_on_cycle_entry = %d\n", v_a_on_cycle_entry, v_b_on_cycle_entry, v_c_on_cycle_entry);
+
 	if (v_a_on_cycle_entry) printf("v_a (%d) is on the cycle defining the subproblem\n", t->v_a);
 	if (v_b_on_cycle_entry) printf("v_b (%d) is on the cycle defining the subproblem\n", t->v_b);
 	if (v_c_on_cycle_entry) printf("v_c (%d) is on the cycle defining the subproblem\n", t->v_c);
 
-	if (v_a_on_cycle_entry && v_b_on_cycle_entry){ //(blue & green problems in notebook drawings)
+	if (v_a_on_cycle_entry && v_b_on_cycle_entry && v_c_on_cycle_entry) abort();
+
+	else if (v_a_on_cycle_entry && v_b_on_cycle_entry){ //(blue & green problems in notebook drawings)
 		if (t->v_c_next != -1){ //if leg c is non-empty
 			if (t->v_c_next == t->v_a || t->v_c_next == t->v_b){ //if the path leading up the bfs tree from v_c leads to v_a or v_b
 				//(S1 in blue & green notebook drawings)
-				//one trichromatic subproblem
+				printf("subproblem 1/1 is trichromatic and will be on faces %d, %d, %d\n", f2, t->v_c_mirror, t->v_b_mirror);
 			}
 			else { //if the path leading up the bfs tree from v_c does NOT lead to v_a or v_b
 				if (acc[t->v_c_next] == acc[t->v_a]){ //if the path leading up the bfs tree exits through colour of vertex a
 					//(S2 in blue & green notebook drawings)
-					//one trichromatic subproblem
-					//one bichromatic subproblem
+					printf("subproblem 1/2 is trichromatic and will be on faces %d, %d, %d\n", f2, t->v_c_r, t->v_b_mirror);
+					printf("subproblem 2/2 is bichromatic and will be on faces %d, %d\n", t->v_c_mirror, t->v_c_l);
+					int val1 = -1;
+					int val2 = -1;
+					for (int i = 0; i < 3; i++){
+						for (int j = 0; j < 3; j++){
+							if (b->sim[sp][i] == b->sim[t->v_c_mirror][j]){
+								if (val1 == -1) val1 = b->sim[t->v_c_mirror][j];
+								else if (val2 == -1) val2 = b->sim[t->v_c_mirror][j];
+							}
+						}
+					}
+					if (val1 == -1 || val2 == -1) abort();
+					//bichromatic_tripod(b, r, t, t->v_c_mirror, t->v_c_l, val1, val2, acc, acc2);
 				}
 				if (acc[t->v_c_next] == acc[t->v_b]){ //if the path leading up the bfs tree exits through colour of vertex b
 					//(S3 in blue & green notebook drawings)
-					//one trichromatic subproblem
-					//one bichromatic subproblem
+					printf("subproblem 1/2 is trichromatic and will be on faces %d, %d, %d\n", f2, t->v_c_mirror, t->v_c_l);
+					printf("subproblem 2/2 is bichromatic and will be on faces %d, %d\n", t->v_b_mirror, t->v_c_r);
+					int val1 = -1;
+					int val2 = -1;
+					for (int i = 0; i < 3; i++){
+						for (int j = 0; j < 3; j++){
+							if (b->sim[sp][i] == b->sim[t->v_b_mirror][j]){
+								if (val1 == -1) val1 = b->sim[t->v_b_mirror][j];
+								else if (val2 == -1) val2 = b->sim[t->v_b_mirror][j];
+							}
+						}
+					}
+					if (val1 == -1 || val2 == -1) abort();
+					//bichromatic_tripod(b, r, t, t->v_b_mirror, t->v_c_r, val1, val2, acc, acc2);
 				}
 				else abort();
 			}
@@ -507,34 +567,82 @@ int* bichromatic_tripod(struct bfs_struct* b, struct rmq_struct* r, struct tripo
 			if (acc[t->v_c] == acc[t->v_a]){ //if vertex c is the same colour as vertex a
 				if (b->bt[t->v_c] == t->v_a || b->bt[t->v_a] == t->v_c){ //if v_a is the parent of v_c, or if v_c is the parent of v_a
 					//(S4 in blue & green notebook drawings)
-					//one bichromatic subproblem
+					printf("subproblem 1/1 is bichromatic and will be on faces %d, %d\n", t->v_b_mirror, f2);
+					int val1 = -1;
+					int val2 = -1;
+					for (int i = 0; i < 3; i++){
+						for (int j = 0; j < 3; j++){
+							if (b->sim[sp][i] == b->sim[t->v_b_mirror][j]){
+								if (val1 == -1) val1 = b->sim[t->v_b_mirror][j];
+								else if (val2 == -1) val2 = b->sim[t->v_b_mirror][j];
+							}
+						}
+					}
+					if (val1 == -1 || val2 == -1) abort();
+					//bichromatic_tripod(b, r, t, t->v_b_mirror, f2, val1, val2, acc, acc2);
 				}
 				else { //if v_a is not the parent of v_c, and if v_c is not the parent of v_a
 					if (sp != f2){
 						//(S5 in blue & green notebook drawings)
-						//one bichromatic subproblem
-						//one monochromatic subproblem
+						printf("subproblem 1/2 is bichromatic and will be on faces %d, %d\n", t->v_b_mirror, f2);
+						int val1 = -1;
+						int val2 = -1;
+						for (int i = 0; i < 3; i++){
+							for (int j = 0; j < 3; j++){
+								if (b->sim[sp][i] == b->sim[t->v_b_mirror][j]){
+									if (val1 == -1) val1 = b->sim[t->v_b_mirror][j];
+									else if (val2 == -1) val2 = b->sim[t->v_b_mirror][j];
+								}
+							}
+						}
+						if (val1 == -1 || val2 == -1) abort();
+						//bichromatic_tripod(b, r, t, t->v_b_mirror, f2, val1, val2, acc, acc2);
+						printf("subproblem 2/2 is monochromatic and will be on face %d\n", t->v_c_mirror);
 					}
 					else { //if sp == f2
 						//(S6 in blue & green notebook drawings)
-						//one monochromatic subproblem
+						printf("subproblem 1/1 is monochromatic and will be on face %d\n", t->v_c_mirror);
 					}
 				}
 			}
 			if (acc[t->v_c] == acc[t->v_b]){ //if vertex c is the same colour as vertex b
 				if (b->bt[t->v_c] == t->v_b || b->bt[t->v_b] == t->v_c){ //if v_b is the parent of v_c, or if v_c is the parent of v_b
 					//(S7 in blue & green notebook drawings)
-					//one bichromatic subproblem
+					printf("subproblem 1/1 is bichromatic and will be on faces %d, %d\n", t->v_c_mirror, f2);
+					int val1 = -1;
+					int val2 = -1;
+					for (int i = 0; i < 3; i++){
+						for (int j = 0; j < 3; j++){
+							if (b->sim[sp][i] == b->sim[t->v_c_mirror][j]){
+								if (val1 == -1) val1 = b->sim[t->v_c_mirror][j];
+								else if (val2 == -1) val2 = b->sim[t->v_c_mirror][j];
+							}
+						}
+					}
+					if (val1 == -1 || val2 == -1) abort();
+					//bichromatic_tripod(b, r, t, t->v_c_mirror, f2, val1, val2, acc, acc2);
 				}
 				else { //if v_b is not the parent of v_c, and if v_c is not the parent of v_b
 					if (sp != f2){
 						//(S8 in blue & green notebook drawings)
-						//one bichromatic subproblem
-						//one monochromatic subproblem
+						printf("subproblem 1/2 is bichromatic and will be on faces %d, %d\n", t->v_c_mirror, f2);
+						int val1 = -1;
+						int val2 = -1;
+						for (int i = 0; i < 3; i++){
+							for (int j = 0; j < 3; j++){
+								if (b->sim[sp][i] == b->sim[t->v_c_mirror][j]){
+									if (val1 == -1) val1 = b->sim[t->v_c_mirror][j];
+									else if (val2 == -1) val2 = b->sim[t->v_c_mirror][j];
+								}
+							}
+						}
+						if (val1 == -1 || val2 == -1) abort();
+						//bichromatic_tripod(b, r, t, t->v_c_mirror, f2, val1, val2, acc, acc2);
+						printf("subproblem 2/2 is monochromatic and will be on face %d\n", t->v_b_mirror);
 					}
 					else { //if sp == f2
 						//(S9 in blue & green notebook drawings)
-						//one monochromatic subproblem
+						printf("subproblem 1/1 is monochromatic and will be on face %d\n", t->v_b_mirror);
 					}
 				}
 			}
@@ -546,18 +654,42 @@ int* bichromatic_tripod(struct bfs_struct* b, struct rmq_struct* r, struct tripo
 		if (t->v_b_next != -1){ //if leg b is non-empty
 			if (t->v_b_next == t->v_c || t->v_b_next == t->v_a){ //if the path leading up the bfs tree from v_b leads to v_c or v_a
 				//(S1 in red & orange notebook drawings)
-				//one trichromatic subproblem
+				printf("subproblem 1/1 is trichromatic and will be on faces %d, %d, %d\n", f2, t->v_b_mirror, t->v_a_mirror);
 			}
 			else { //if the path leading up the bfs tree from v_b does NOT lead to v_c or v_a
 				if (acc[t->v_b_next] == acc[t->v_c]){ //if the path leading up the bfs tree exits through colour of vertex c
 					//(S2 in red & orange notebook drawings)
-					//one trichromatic subproblem
-					//one bichromatic subproblem
+					printf("subproblem 1/2 is trichromatic and will be on faces %d, %d, %d\n", f2, t->v_b_r, t->v_a_mirror);
+					printf("subproblem 2/2 is bichromatic and will be on faces %d, %d\n", t->v_b_mirror, t->v_b_l);
+					int val1 = -1;
+					int val2 = -1;
+					for (int i = 0; i < 3; i++){
+						for (int j = 0; j < 3; j++){
+							if (b->sim[sp][i] == b->sim[t->v_b_mirror][j]){
+								if (val1 == -1) val1 = b->sim[t->v_b_mirror][j];
+								else if (val2 == -1) val2 = b->sim[t->v_b_mirror][j];
+							}
+						}
+					}
+					if (val1 == -1 || val2 == -1) abort();
+					//bichromatic_tripod(b, r, t, t->v_b_mirror, t->v_b_l, val1, val2, acc, acc2);
 				}
 				if (acc[t->v_b_next] == acc[t->v_a]){ //if the path leading up the bfs tree exits through colour of vertex a
 					//(S3 in red & orange notebook drawings)
-					//one trichromatic subproblem
-					//one bichromatic subproblem
+					printf("subproblem 1/2 is trichromatic and will be on faces %d, %d, %d\n", f2, t->v_b_mirror, t->v_b_l);
+					printf("subproblem 2/2 is bichromatic and will be on faces %d, %d\n", t->v_a_mirror, t->v_b_r);
+					int val1 = -1;
+					int val2 = -1;
+					for (int i = 0; i < 3; i++){
+						for (int j = 0; j < 3; j++){
+							if (b->sim[sp][i] == b->sim[t->v_a_mirror][j]){
+								if (val1 == -1) val1 = b->sim[t->v_a_mirror][j];
+								else if (val2 == -1) val2 = b->sim[t->v_a_mirror][j];
+							}
+						}
+					}
+					if (val1 == -1 || val2 == -1) abort();
+					//bichromatic_tripod(b, r, t, t->v_a_mirror, t->v_b_r, val1, val2, acc, acc2);
 				}
 				else abort();
 			}
@@ -566,34 +698,82 @@ int* bichromatic_tripod(struct bfs_struct* b, struct rmq_struct* r, struct tripo
 			if (acc[t->v_b] == acc[t->v_c]){ //if vertex b is the same colour as vertex c
 				if (b->bt[t->v_b] == t->v_c || b->bt[t->v_c] == t->v_b){ //if v_c is the parent of v_b, or if v_b is the parent of v_c
 					//(S4 in red & orange notebook drawings)
-					//one bichromatic subproblem
+					printf("subproblem 1/1 is bichromatic and will be on faces %d, %d\n", t->v_a_mirror, f2);
+					int val1 = -1;
+					int val2 = -1;
+					for (int i = 0; i < 3; i++){
+						for (int j = 0; j < 3; j++){
+							if (b->sim[sp][i] == b->sim[t->v_a_mirror][j]){
+								if (val1 == -1) val1 = b->sim[t->v_a_mirror][j];
+								else if (val2 == -1) val2 = b->sim[t->v_a_mirror][j];
+							}
+						}
+					}
+					if (val1 == -1 || val2 == -1) abort();
+					//bichromatic_tripod(b, r, t, t->v_a_mirror, f2, val1, val2, acc, acc2);
 				}
 				else { //if v_c is not the parent of v_b, and if v_b is not the parent of v_c
 					if (sp != f2){
 						//(S5 in red & orange notebook drawings)
-						//one bichromatic subproblem
-						//one monochromatic subproblem
+						printf("subproblem 1/2 is bichromatic and will be on faces %d, %d\n", t->v_a_mirror, f2);
+						int val1 = -1;
+						int val2 = -1;
+						for (int i = 0; i < 3; i++){
+							for (int j = 0; j < 3; j++){
+								if (b->sim[sp][i] == b->sim[t->v_a_mirror][j]){
+									if (val1 == -1) val1 = b->sim[t->v_a_mirror][j];
+									else if (val2 == -1) val2 = b->sim[t->v_a_mirror][j];
+								}
+							}
+						}
+						if (val1 == -1 || val2 == -1) abort();
+						//bichromatic_tripod(b, r, t, t->v_a_mirror, f2, val1, val2, acc, acc2);
+						printf("subproblem 2/2 is monochromatic and will be on face %d\n", t->v_b_mirror);
 					}
 					else { //if sp == f2
 						//(S6 in red & orange notebook drawings)
-						//one monochromatic subproblem
+						printf("subproblem 1/1 is monochromatic and will be on face %d\n", t->v_b_mirror);
 					}
 				}
 			}
 			if (acc[t->v_b] == acc[t->v_a]){ //if vertex b is the same colour as vertex a
 				if (b->bt[t->v_b] == t->v_a || b->bt[t->v_a] == t->v_b){ //if v_a is the parent of v_b, or if v_b is the parent of v_a
 					//(S7 in red & orange notebook drawings)
-					//one bichromatic subproblem
+					printf("subproblem 1/1 is bichromatic and will be on faces %d, %d\n", t->v_b_mirror, f2);
+					int val1 = -1;
+					int val2 = -1;
+					for (int i = 0; i < 3; i++){
+						for (int j = 0; j < 3; j++){
+							if (b->sim[sp][i] == b->sim[t->v_b_mirror][j]){
+								if (val1 == -1) val1 = b->sim[t->v_b_mirror][j];
+								else if (val2 == -1) val2 = b->sim[t->v_b_mirror][j];
+							}
+						}
+					}
+					if (val1 == -1 || val2 == -1) abort();
+					//bichromatic_tripod(b, r, t, t->v_b_mirror, f2, val1, val2, acc, acc2);
 				}
 				else { //if v_a is not the parent of v_b, and if v_b is not the parent of v_a
 					if (sp != f2){
 						//(S8 in red & orange notebook drawings)
-						//one bichromatic subproblem
-						//one monochromatic subproblem
+						printf("subproblem 1/2 is bichromatic and will be on faces %d, %d\n", t->v_b_mirror, f2);
+						int val1 = -1;
+						int val2 = -1;
+						for (int i = 0; i < 3; i++){
+							for (int j = 0; j < 3; j++){
+								if (b->sim[sp][i] == b->sim[t->v_b_mirror][j]){
+									if (val1 == -1) val1 = b->sim[t->v_b_mirror][j];
+									else if (val2 == -1) val2 = b->sim[t->v_b_mirror][j];
+								}
+							}
+						}
+						if (val1 == -1 || val2 == -1) abort();
+						//bichromatic_tripod(b, r, t, t->v_b_mirror, f2, val1, val2, acc, acc2);
+						printf("subproblem 2/2 is monochromatic and will be on face %d\n", t->v_a_mirror);
 					}
 					else { //if sp == f2
 						//(S9 in red & orange notebook drawings)
-						//one monochromatic subproblem
+						printf("subproblem 1/1 is monochromatic and will be on face %d\n", t->v_a_mirror);
 					}
 				}
 			}
@@ -605,18 +785,42 @@ int* bichromatic_tripod(struct bfs_struct* b, struct rmq_struct* r, struct tripo
 		if (t->v_a_next != -1){ //if leg a is non-empty
 			if (t->v_a_next == t->v_b || t->v_a_next == t->v_c){ //if the path leading up the bfs tree from v_a leads to v_b or v_c
 				//(S1 in purple & pink notebook drawings)
-				//one trichromatic subproblem
+				printf("subproblem 1/1 is trichromatic and will be on faces %d, %d, %d\n", f2, t->v_a_mirror, t->v_c_mirror);
 			}
 			else { //if the path leading up the bfs tree from v_a does NOT lead to v_b or v_c
 				if (acc[t->v_a_next] == acc[t->v_b]){ //if the path leading up the bfs tree exits through colour of vertex b
 					//(S2 in purple & pink notebook drawings)
-					//one trichromatic subproblem
-					//one bichromatic subproblem
+					printf("subproblem 1/2 is trichromatic and will be on faces %d, %d, %d\n", f2, t->v_a_r, t->v_c_mirror);
+					printf("subproblem 2/2 is bichromatic and will be on faces %d, %d\n", t->v_a_mirror, t->v_a_l);
+					int val1 = -1;
+					int val2 = -1;
+					for (int i = 0; i < 3; i++){
+						for (int j = 0; j < 3; j++){
+							if (b->sim[sp][i] == b->sim[t->v_a_mirror][j]){
+								if (val1 == -1) val1 = b->sim[t->v_a_mirror][j];
+								else if (val2 == -1) val2 = b->sim[t->v_a_mirror][j];
+							}
+						}
+					}
+					if (val1 == -1 || val2 == -1) abort();
+					//bichromatic_tripod(b, r, t, t->v_a_mirror, t->v_a_l, val1, val2, acc, acc2);
 				}
 				if (acc[t->v_a_next] == acc[t->v_c]){ //if the path leading up the bfs tree exits through colour of vertex c
 					//(S3 in purple & pink notebook drawings)
-					//one trichromatic subproblem
-					//one bichromatic subproblem
+					printf("subproblem 1/2 is trichromatic and will be on faces %d, %d, %d\n", f2, t->v_a_mirror, t->v_a_l);
+					printf("subproblem 2/2 is bichromatic and will be on faces %d, %d\n", t->v_c_mirror, t->v_a_r);
+					int val1 = -1;
+					int val2 = -1;
+					for (int i = 0; i < 3; i++){
+						for (int j = 0; j < 3; j++){
+							if (b->sim[sp][i] == b->sim[t->v_c_mirror][j]){
+								if (val1 == -1) val1 = b->sim[t->v_c_mirror][j];
+								else if (val2 == -1) val2 = b->sim[t->v_c_mirror][j];
+							}
+						}
+					}
+					if (val1 == -1 || val2 == -1) abort();
+					//bichromatic_tripod(b, r, t, t->v_c_mirror, t->v_a_r, val1, val2, acc, acc2);
 				}
 				else abort();
 			}
@@ -625,40 +829,90 @@ int* bichromatic_tripod(struct bfs_struct* b, struct rmq_struct* r, struct tripo
 			if (acc[t->v_a] == acc[t->v_b]){ //if vertex a is the same colour as vertex b
 				if (b->bt[t->v_b] == t->v_a || b->bt[t->v_a] == t->v_b){ //if v_b is the parent of v_a, or if v_a is the parent of v_b
 					//(S4 in purple & pink notebook drawings)
-					//one bichromatic subproblem
+					printf("subproblem 1/1 is bichromatic and will be on faces %d, %d\n", t->v_c_mirror, f2);
+					int val1 = -1;
+					int val2 = -1;
+					for (int i = 0; i < 3; i++){
+						for (int j = 0; j < 3; j++){
+							if (b->sim[sp][i] == b->sim[t->v_c_mirror][j]){
+								if (val1 == -1) val1 = b->sim[t->v_c_mirror][j];
+								else if (val2 == -1) val2 = b->sim[t->v_c_mirror][j];
+							}
+						}
+					}
+					if (val1 == -1 || val2 == -1) abort();
+					//bichromatic_tripod(b, r, t, t->v_c_mirror, f2, val1, val2, acc, acc2);
 				}
 				else { //if v_b is not the parent of v_a, and if v_a is not the parent of v_b
 					if (sp != f2){
 						//(S5 in purple & pink notebook drawings)
-						//one bichromatic subproblem
-						//one monochromatic subproblem
+						printf("subproblem 1/2 is bichromatic and will be on faces %d, %d\n", t->v_c_mirror, f2);
+						int val1 = -1;
+						int val2 = -1;
+						for (int i = 0; i < 3; i++){
+							for (int j = 0; j < 3; j++){
+								if (b->sim[sp][i] == b->sim[t->v_c_mirror][j]){
+									if (val1 == -1) val1 = b->sim[t->v_c_mirror][j];
+									else if (val2 == -1) val2 = b->sim[t->v_c_mirror][j];
+								}
+							}
+						}
+						if (val1 == -1 || val2 == -1) abort();
+						//bichromatic_tripod(b, r, t, t->v_c_mirror, f2, val1, val2, acc, acc2);
+						printf("subproblem 2/2 is monochromatic and will be on face %d\n", t->v_a_mirror);
 					}
 					else { //if sp == f2
 						//(S6 in purple & pink notebook drawings)
-						//one monochromatic subproblem
+						printf("subproblem 1/1 is monochromatic and will be on face %d\n", t->v_a_mirror);
 					}
 				}
 			}
 			if (acc[t->v_a] == acc[t->v_c]){ //if vertex a is the same colour as vertex c
 				if (b->bt[t->v_c] == t->v_a || b->bt[t->v_a] == t->v_c){ //if v_c is the parent of v_a, or if v_a is the parent of v_c
 					//(S7 in purple & pink notebook drawings)
-					//one bichromatic subproblem
+					printf("subproblem 1/1 is bichromatic and will be on faces %d, %d\n", t->v_a_mirror, f2);
+					int val1 = -1;
+					int val2 = -1;
+					for (int i = 0; i < 3; i++){
+						for (int j = 0; j < 3; j++){
+							if (b->sim[sp][i] == b->sim[t->v_a_mirror][j]){
+								if (val1 == -1) val1 = b->sim[t->v_a_mirror][j];
+								else if (val2 == -1) val2 = b->sim[t->v_a_mirror][j];
+							}
+						}
+					}
+					if (val1 == -1 || val2 == -1) abort();
+					//bichromatic_tripod(b, r, t, t->v_a_mirror, f2, val1, val2, acc, acc2);
 				}
 				else { //if v_c is not the parent of v_a, and if v_a is not the parent of v_c
 					if (sp != f2){
 						//(S8 in purple & pink notebook drawings)
-						//one bichromatic subproblem
-						//one monochromatic subproblem
+						printf("subproblem 1/2 is bichromatic and will be on faces %d, %d\n", t->v_a_mirror, f2);
+						int val1 = -1;
+						int val2 = -1;
+						for (int i = 0; i < 3; i++){
+							for (int j = 0; j < 3; j++){
+								if (b->sim[sp][i] == b->sim[t->v_a_mirror][j]){
+									if (val1 == -1) val1 = b->sim[t->v_a_mirror][j];
+									else if (val2 == -1) val2 = b->sim[t->v_a_mirror][j];
+								}
+							}
+						}
+						if (val1 == -1 || val2 == -1) abort();
+						//bichromatic_tripod(b, r, t, t->v_a_mirror, f2, val1, val2, acc, acc2);
+						printf("subproblem 2/2 is monochromatic and will be on face %d\n", t->v_c_mirror);
 					}
 					else { //if sp == f2
 						//(S9 in purple & pink notebook drawings)
-						//one monochromatic subproblem
+						printf("subproblem 1/1 is monochromatic and will be on face %d\n", t->v_c_mirror);
 					}
 				}
 			}
 			else abort();
 		}
 	}
+
+	else abort();
 
 	return 0;
 }
