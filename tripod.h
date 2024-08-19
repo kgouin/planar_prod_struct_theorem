@@ -31,6 +31,8 @@ void store_tripod(struct bfs_struct*, struct tripod_decomposition_struct*, int, 
 
 int* trichromatic_tripod(struct bfs_struct*, struct rmq_struct*, struct tripod_decomposition_struct*, int, int, int, int*, int*);
 void trichromatic_orient_subproblems(struct bfs_struct*, struct tripod_decomposition_struct*, int, int, int, int, int*);
+void trichromatic_orient_subproblems_pt2(struct bfs_struct*, struct tripod_decomposition_struct*, int, int, int, int, int, int, int, int*);
+void trichromatic_orient_subproblems_pt3(struct bfs_struct*, struct tripod_decomposition_struct*, int, int, int, int, int, int, int, int, int, int, int*);
 void trichromatic_decompose(struct bfs_struct*, struct rmq_struct*, struct tripod_decomposition_struct*, int, int, int, int, int*, int*);
 
 int* bichromatic_tripod(struct bfs_struct*, struct rmq_struct*, struct tripod_decomposition_struct*, int, int, int*, int*);
