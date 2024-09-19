@@ -457,6 +457,106 @@ void bichromatic_decompose(struct bfs_struct* b, struct rmq_struct* r, struct tr
 	else { //all legs are empty
 		//here we either have case 5.3, 5.4, 5.5, or 5.6 (the empty case)
 		//the vertices of the crotch of sp are one of exactly two colours
+
+		if (acc[v_a] == acc[v_b]){ //if v_a and v_b are the same colour, with v_c a different colour
+			//edge of interest is {v_a, v_b}
+			//mirror triangle of interest is v_a_mirror
+			
+			//v_a_mirror will have two of its vertices the same colour as v_a and v_b
+			//v_a_mirror's third vertex is either the same colour as v_a and v_b, or is uncoloured
+			
+			if (b->bt[v_b] == v_a || b->bt[v_a] == v_b){
+				//if v_a is a bfs parent of v_b or v_b is a bfs parent of v_a, then we are in case 5.4
+				printf("we have one subproblem for sp %d: bichromatic\n", sp);
+				printf("bichromatic subproblem for sp %d will be on faces %d, %d\n", sp, f2, v_b_mirror);
+				bichromatic_tripod( b, r, t, f2, v_b_mirror, acc, acc2);
+			}
+			else if (acc[v_a_mirror] > -1){
+				//otherwise, if the edge {v_a, v_b} is part of the crotch of tripod coloured acc[v_a], then we are in case 5.6 (empty case)
+				printf("we have zero subproblems for sp %d\n", sp);
+			}
+			//otherwise, we are in case 5.3 or 5.5
+			else if (f1 == f2){
+				//if f1 == f2 then we are in case 5.5
+				printf("we have one subproblem for sp %d: monochromatic\n", sp);
+				printf("monochromatic subproblem for sp %d will be on face %d\n", sp, v_a_mirror);
+				monochromatic_tripod( b, r, t, v_a_mirror, acc, acc2);
+			}
+			else {
+				//we are in case 5.3
+				printf("we have two subproblems for sp %d: bichromatic + monochromatic\n", sp);
+				printf("bichromatic subproblem for sp %d will be on faces %d, %d\n", sp, f2, v_b_mirror);
+				bichromatic_tripod( b, r, t, f2, v_b_mirror, acc, acc2);
+				printf("monochromatic subproblem for sp %d will be on face %d\n", sp, v_a_mirror);
+				monochromatic_tripod( b, r, t, v_a_mirror, acc, acc2);
+			}
+		}
+		else if (acc[v_b] == acc[v_c]){ //if v_b and v_c are the same colour, with v_a a different colour
+			//edge of interest is {v_b, v_c}
+			//mirror triangle of interest is v_b_mirror
+			
+			//v_b_mirror will have two of its vertices the same colour as v_b and v_c
+			//v_b_mirror's third vertex is either the same colour as v_b and v_c, or is uncoloured
+			
+			if (b->bt[v_c] == v_b || b->bt[v_b] == v_c){
+				//if v_b is a bfs parent of v_c or v_c is a bfs parent of v_b, then we are in case 5.4
+				printf("we have one subproblem for sp %d: bichromatic\n", sp);
+				printf("bichromatic subproblem for sp %d will be on faces %d, %d\n", sp, f2, v_c_mirror);
+				bichromatic_tripod( b, r, t, f2, v_c_mirror, acc, acc2);
+			}
+			else if (acc[v_b_mirror] > -1){
+				//otherwise, if the edge {v_b, v_c} is part of the crotch of tripod coloured acc[v_b], then we are in case 5.6 (empty case)
+				printf("we have zero subproblems for sp %d\n", sp);
+			}
+			//otherwise, we are in case 5.3 or 5.5
+			else if (f1 == f2){
+				//if f1 == f2 then we are in case 5.5
+				printf("we have one subproblem for sp %d: monochromatic\n", sp);
+				printf("monochromatic subproblem for sp %d will be on face %d\n", sp, v_b_mirror);
+				monochromatic_tripod( b, r, t, v_b_mirror, acc, acc2);
+			}
+			else {
+				//we are in case 5.3
+				printf("we have two subproblems for sp %d: bichromatic + monochromatic\n", sp);
+				printf("bichromatic subproblem for sp %d will be on faces %d, %d\n", sp, f2, v_c_mirror);
+				bichromatic_tripod( b, r, t, f2, v_c_mirror, acc, acc2);
+				printf("monochromatic subproblem for sp %d will be on face %d\n", sp, v_b_mirror);
+				monochromatic_tripod( b, r, t, v_b_mirror, acc, acc2);
+			}
+		}
+		else { //if v_c and v_a are the same colour, with v_b a different colour
+			//edge of interest is {v_c, v_a}
+			//mirror triangle of interest is v_c_mirror
+			
+			//v_c_mirror will have two of its vertices the same colour as v_c and v_a
+			//v_c_mirror's third vertex is either the same colour as v_c and v_a, or is uncoloured
+			
+			if (b->bt[v_a] == v_c || b->bt[v_c] == v_a){
+				//if v_c is a bfs parent of v_a or v_a is a bfs parent of v_c, then we are in case 5.4
+				printf("we have one subproblem for sp %d: bichromatic\n", sp);
+				printf("bichromatic subproblem for sp %d will be on faces %d, %d\n", sp, f2, v_a_mirror);
+				bichromatic_tripod( b, r, t, f2, v_a_mirror, acc, acc2);
+			}
+			else if (acc[v_c_mirror] > -1){
+				//otherwise, if the edge {v_c, v_a} is part of the crotch of tripod coloured acc[v_c], then we are in case 5.6 (empty case)
+				printf("we have zero subproblems for sp %d\n", sp);
+			}
+			//otherwise, we are in case 5.3 or 5.5
+			else if (f1 == f2){
+				//if f1 == f2 then we are in case 5.5
+				printf("we have one subproblem for sp %d: monochromatic\n", sp);
+				printf("monochromatic subproblem for sp %d will be on face %d\n", sp, v_c_mirror);
+				monochromatic_tripod( b, r, t, v_c_mirror, acc, acc2);
+			}
+			else {
+				//we are in case 5.3
+				printf("we have two subproblems for sp %d: bichromatic + monochromatic\n", sp);
+				printf("bichromatic subproblem for sp %d will be on faces %d, %d\n", sp, f2, v_a_mirror);
+				bichromatic_tripod( b, r, t, f2, v_a_mirror, acc, acc2);
+				printf("monochromatic subproblem for sp %d will be on face %d\n", sp, v_c_mirror);
+				monochromatic_tripod( b, r, t, v_c_mirror, acc, acc2);
+			}
+		}
 	}
 }
 
@@ -483,8 +583,6 @@ int* monochromatic_tripod(struct bfs_struct* b, struct rmq_struct* r, struct tri
 	printf("v_a_mirror = %d\n", t->v_a_mirror);
 	printf("v_b_mirror = %d\n", t->v_b_mirror);
 	printf("v_c_mirror = %d\n", t->v_c_mirror);
-
-	//no need to orient // I wouldn't be so sure...
 
 	//monochromatic_decompose(b, r, t, sp, f1, acc, acc2); //passing sp and f1 is redundant
 	printf("skipping monochromatic_decompose\n");
