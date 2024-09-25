@@ -26,7 +26,8 @@ void init(struct bfs_struct* b, struct rmq_struct* r, struct tripod_decompositio
 	for (int k = 0; k < (b->v); k++){
 		acc[k] = -1; //vertices labeled with -1 do not yet belong to a tripod
 	}
-	for (int k = 0; k < (b->f); k++){
+	acc2[0] = 0;
+	for (int k = 1; k < (b->f); k++){
 		acc2[k] = -1; //faces labeled with -1 have not been identified as sperner triangles
 	}
 
@@ -45,7 +46,10 @@ void init(struct bfs_struct* b, struct rmq_struct* r, struct tripod_decompositio
 int* trichromatic_tripod(struct bfs_struct* b, struct rmq_struct* r, struct tripod_decomposition_struct* t, int f1, int f2, int f3, int* acc, int* acc2){
 	//sperner triangle identification
 	int sp;
-	if (f1 == f2 && f1 == f3) return 0;
+	if (f1 == f2 && f1 == f3){
+		acc2[f1] = f1; //keep track of sperner triangles
+		return 0;
+	}
 	else if (f1 != f2 && f1 != f3 && f2 != f3){
 		//find sperner triangle
 		if (LCA_query(r, f1, f2) == LCA_query(r, f1, f3) && LCA_query(r, f1, f3) == LCA_query(r, f2, f3)) sp = LCA_query(r, f1, f2);
@@ -63,6 +67,10 @@ int* trichromatic_tripod(struct bfs_struct* b, struct rmq_struct* r, struct trip
 	printf("\n%d is one of our sperner triangles\nacc = ", sp); //sperner triangles are correctly identified
 	for (int k = 0; k < (b->v); k++){
 		printf("%d ", acc[k]);
+	}
+	printf("\nacc2 = ");
+	for (int i = 0; i < b->f; i++){
+		printf("%d ", acc2[i]);
 	}
 	printf("\n");
 
@@ -330,6 +338,10 @@ int* bichromatic_tripod(struct bfs_struct* b, struct rmq_struct* r, struct tripo
 	for (int k = 0; k < (b->v); k++){
 		printf("%d ", acc[k]);
 	}
+	printf("\nacc2 = ");
+	for (int i = 0; i < b->f; i++){
+		printf("%d ", acc2[i]);
+	}
 	printf("\n");
 
 	acc2[sp] = sp; //keep track of sperner triangles
@@ -469,32 +481,39 @@ void bichromatic_decompose(struct bfs_struct* b, struct rmq_struct* r, struct tr
 				//if v_a is a bfs parent of v_b or v_b is a bfs parent of v_a, then we are in case 5.4
 				//DIFFERENT CASES HERE, DEPENDING ON WHETHER V_A IS PARENT OF V_B OR V_B IS PARENT OF V_A !!!!
 				printf("we have one subproblem for sp %d: bichromatic\n", sp);
-				if (b->bt[v_a] == v_b){ //if v_b is a bfs parent of v_a
-					printf("bichromatic subproblem for sp %d will be on faces %d, %d\n", sp, f2, v_b_mirror);
-					bichromatic_tripod( b, r, t, f2, v_b_mirror, acc, acc2);
+				if (b->bt[v_b] == v_a){ //if v_a is a bfs parent of v_b
+					if (acc2[v_b_mirror] == -1){
+						printf("bichromatic subproblem for sp %d will be on faces %d, %d\n", sp, f2, v_b_mirror);
+						bichromatic_tripod( b, r, t, f2, v_b_mirror, acc, acc2);
+					}
 				}
-				else { //v_a is a bfs parent of v_b
-					printf("bichromatic subproblem for sp %d will be on faces %d, %d\n", sp, f2, v_c_mirror);
-					bichromatic_tripod( b, r, t, f2, v_c_mirror, acc, acc2);
+				else { //v_b is a bfs parent of v_a
+					if (acc2[v_c_mirror] == -1){
+						printf("bichromatic subproblem for sp %d will be on faces %d, %d\n", sp, f2, v_c_mirror);
+						bichromatic_tripod( b, r, t, f2, v_c_mirror, acc, acc2);
+					}
 				}
-			}
-			else if (acc2[v_a_mirror] == acc[v_a]){ //acc2[v_a_mirror] should be the purple tripod, the one with colour acc[v_a]
-				//if the edge {v_a, v_b} is part of the crotch of tripod coloured acc[v_a], then we are in case 5.6 (empty case)
-				printf("we have zero subproblems for sp %d\n", sp);
 			}
 			//otherwise, we are in case 5.3 or 5.5
 			else if (f1 == f2){
-				//if f1 == f2 then we are in case 5.5
-				printf("we have one subproblem for sp %d: monochromatic\n", sp);
-				printf("monochromatic subproblem for sp %d will be on face %d\n", sp, v_a_mirror);
-				monochromatic_tripod( b, r, t, v_a_mirror, acc, acc2);
+				if (acc2[v_a_mirror] != acc[v_a]){ //make sure subproblem exists with (acc2[v_a_mirror] != acc[v_a]) check
+					//if f1 == f2 then we are in case 5.5
+					printf("we have one subproblem for sp %d: monochromatic\n", sp);
+					printf("monochromatic subproblem for sp %d will be on face %d\n", sp, v_a_mirror);
+					monochromatic_tripod( b, r, t, v_a_mirror, acc, acc2);
+				}
 			}
 			else {
 				//we are in case 5.3
 				//for any coloured edge, either it's a tree edge or there's a sp on the other side
-				printf("we have two subproblems for sp %d: bichromatic + monochromatic\n", sp);
-				printf("monochromatic subproblem for sp %d will be on face %d\n", sp, v_a_mirror);
-				monochromatic_tripod( b, r, t, v_a_mirror, acc, acc2);
+				if (acc2[v_a_mirror] != acc[v_a]){ //make sure monochromatic subproblem exists with (acc2[v_a_mirror] != acc[v_a]) check
+					printf("we have two subproblems for sp %d: monochromatic + bichromatic\n", sp);
+					printf("monochromatic subproblem for sp %d will be on face %d\n", sp, v_a_mirror);
+					monochromatic_tripod( b, r, t, v_a_mirror, acc, acc2);
+				}
+				else {
+					printf("we have one subproblem for sp %d: bichromatic\n", sp);
+				}
 				//DIFFERENT CASES HERE, DEPENDING ON SPECIFIC TRIANGLE ORIENTATION !!!!
 				if ((b->bt[v_b] == v_c || b->bt[v_c] == v_b) || acc2[v_b_mirror] > -1){
 					printf("bichromatic subproblem for sp %d will be on faces %d, %d\n", sp, f2, v_c_mirror);
@@ -517,32 +536,39 @@ void bichromatic_decompose(struct bfs_struct* b, struct rmq_struct* r, struct tr
 				//if v_b is a bfs parent of v_c or v_c is a bfs parent of v_b, then we are in case 5.4
 				//DIFFERENT CASES HERE, DEPENDING ON WHETHER V_B IS PARENT OF V_C OR V_C IS PARENT OF V_B !!!!
 				printf("we have one subproblem for sp %d: bichromatic\n", sp);
-				if (b->bt[v_b] == v_c){ //v_c is a bfs parent of v_b
-					printf("bichromatic subproblem for sp %d will be on faces %d, %d\n", sp, f2, v_c_mirror);
-					bichromatic_tripod( b, r, t, f2, v_c_mirror, acc, acc2);
+				if (b->bt[v_c] == v_b){ //v_b is a bfs parent of v_c
+					if (acc2[v_c_mirror] == -1){
+						printf("bichromatic subproblem for sp %d will be on faces %d, %d\n", sp, f2, v_c_mirror);
+						bichromatic_tripod( b, r, t, f2, v_c_mirror, acc, acc2);
+					}
 				}
-				else { //v_b is a bfs parent of v_c
-					printf("bichromatic subproblem for sp %d will be on faces %d, %d\n", sp, f2, v_a_mirror);
-					bichromatic_tripod( b, r, t, f2, v_a_mirror, acc, acc2);
+				else { //v_c is a bfs parent of v_b
+					if (acc2[v_a_mirror] == -1){
+						printf("bichromatic subproblem for sp %d will be on faces %d, %d\n", sp, f2, v_a_mirror);
+						bichromatic_tripod( b, r, t, f2, v_a_mirror, acc, acc2);
+					}
 				}
-			}
-			else if (acc2[v_b_mirror] == acc[v_b]){ //acc2[v_b_mirror] should be the purple tripod, the one with colour acc[v_b]
-				//if the edge {v_b, v_c} is part of the crotch of tripod coloured acc[v_b], then we are in case 5.6 (empty case)
-				printf("we have zero subproblems for sp %d\n", sp);
 			}
 			//otherwise, we are in case 5.3 or 5.5
 			else if (f1 == f2){
-				//if f1 == f2 then we are in case 5.5
-				printf("we have one subproblem for sp %d: monochromatic\n", sp);
-				printf("monochromatic subproblem for sp %d will be on face %d\n", sp, v_b_mirror);
-				monochromatic_tripod( b, r, t, v_b_mirror, acc, acc2);
+				if (acc2[v_b_mirror] != acc[v_b]){ //make sure subproblem exists with (acc2[v_b_mirror] != acc[v_b]) check
+					//if f1 == f2 then we are in case 5.5
+					printf("we have one subproblem for sp %d: monochromatic\n", sp);
+					printf("monochromatic subproblem for sp %d will be on face %d\n", sp, v_b_mirror);
+					monochromatic_tripod( b, r, t, v_b_mirror, acc, acc2);
+				}
 			}
 			else {
 				//we are in case 5.3
 				//for any coloured edge, either it's a tree edge or there's a sp on the other side
-				printf("we have two subproblems for sp %d: bichromatic + monochromatic\n", sp);
-				printf("monochromatic subproblem for sp %d will be on face %d\n", sp, v_b_mirror);
-				monochromatic_tripod( b, r, t, v_b_mirror, acc, acc2);
+				if (acc2[v_b_mirror] != acc[v_b]){ //make sure monochromatic subproblem exists with (acc2[v_b_mirror] != acc[v_b]) check
+					printf("we have two subproblems for sp %d: bichromatic + monochromatic\n", sp);
+					printf("monochromatic subproblem for sp %d will be on face %d\n", sp, v_b_mirror);
+					monochromatic_tripod( b, r, t, v_b_mirror, acc, acc2);
+				}
+				else {
+					printf("we have one subproblem for sp %d: bichromatic\n", sp);
+				}
 				//DIFFERENT CASES HERE, DEPENDING ON SPECIFIC TRIANGLE ORIENTATION !!!!
 				if ((b->bt[v_c] == v_a || b->bt[v_a] == v_c) || acc2[v_c_mirror] > -1){
 					printf("bichromatic subproblem for sp %d will be on faces %d, %d\n", sp, f2, v_a_mirror);
@@ -554,7 +580,7 @@ void bichromatic_decompose(struct bfs_struct* b, struct rmq_struct* r, struct tr
 				}
 			}
 		}
-		else { //if v_c and v_a are the same colour, with v_b a different colour
+		else if (acc[v_c] == acc[v_a]){ //if v_c and v_a are the same colour, with v_b a different colour
 			//edge of interest is {v_c, v_a}
 			//mirror triangle of interest is v_c_mirror
 			
@@ -565,32 +591,39 @@ void bichromatic_decompose(struct bfs_struct* b, struct rmq_struct* r, struct tr
 				//if v_c is a bfs parent of v_a or v_a is a bfs parent of v_c, then we are in case 5.4
 				//DIFFERENT CASES HERE, DEPENDING ON WHETHER V_C IS PARENT OF V_A OR V_A IS PARENT OF V_C !!!!
 				printf("we have one subproblem for sp %d: bichromatic\n", sp);
-				if (b->bt[v_c] == v_a){ //if v_a is a bfs parent of v_c
-					printf("bichromatic subproblem for sp %d will be on faces %d, %d\n", sp, f2, v_a_mirror);
-					bichromatic_tripod( b, r, t, f2, v_a_mirror, acc, acc2);
+				if (b->bt[v_a] == v_c){ //if v_c is a bfs parent of v_a
+					if (acc2[v_a_mirror] == -1){
+						printf("bichromatic subproblem for sp %d will be on faces %d, %d\n", sp, f2, v_a_mirror);
+						bichromatic_tripod( b, r, t, f2, v_a_mirror, acc, acc2);
+					}
 				}
-				else { //v_c is a bfs parent of v_a
-					printf("bichromatic subproblem for sp %d will be on faces %d, %d\n", sp, f2, v_b_mirror);
-					bichromatic_tripod( b, r, t, f2, v_b_mirror, acc, acc2);
+				else { //v_a is a bfs parent of v_c
+					if (acc2[v_b_mirror] == -1){
+						printf("bichromatic subproblem for sp %d will be on faces %d, %d\n", sp, f2, v_b_mirror);
+						bichromatic_tripod( b, r, t, f2, v_b_mirror, acc, acc2);
+					}
 				}
-			}
-			else if (acc2[v_c_mirror] == acc[v_c]){ //acc2[v_c_mirror] should be the purple tripod, the one with colour acc[v_c]
-				//if the edge {v_c, v_a} is part of the crotch of tripod coloured acc[v_c], then we are in case 5.6 (empty case)
-				printf("we have zero subproblems for sp %d\n", sp);
 			}
 			//otherwise, we are in case 5.3 or 5.5
 			else if (f1 == f2){
-				//if f1 == f2 then we are in case 5.5
-				printf("we have one subproblem for sp %d: monochromatic\n", sp);
-				printf("monochromatic subproblem for sp %d will be on face %d\n", sp, v_c_mirror);
-				monochromatic_tripod( b, r, t, v_c_mirror, acc, acc2);
+				if (acc2[v_c_mirror] != acc[v_c]){ //make sure subproblem exists with (acc2[v_c_mirror] != acc[v_c]) check
+					//if f1 == f2 then we are in case 5.5
+					printf("we have one subproblem for sp %d: monochromatic\n", sp);
+					printf("monochromatic subproblem for sp %d will be on face %d\n", sp, v_c_mirror);
+					monochromatic_tripod( b, r, t, v_c_mirror, acc, acc2);
+				}
 			}
 			else {
 				//we are in case 5.3
 				//for any coloured edge, either it's a tree edge or there's a sp on the other side
-				printf("we have two subproblems for sp %d: bichromatic + monochromatic\n", sp);
-				printf("monochromatic subproblem for sp %d will be on face %d\n", sp, v_c_mirror);
-				monochromatic_tripod( b, r, t, v_c_mirror, acc, acc2);
+				if (acc2[v_c_mirror] != acc[v_c]){ //make sure monochromatic subproblem exists with (acc2[v_c_mirror] != acc[v_c]) check
+					printf("we have two subproblems for sp %d: bichromatic + monochromatic\n", sp);
+					printf("monochromatic subproblem for sp %d will be on face %d\n", sp, v_c_mirror);
+					monochromatic_tripod( b, r, t, v_c_mirror, acc, acc2);
+				}
+				else {
+					printf("we have one subproblem for sp %d: bichromatic\n", sp);
+				}
 				//DIFFERENT CASES HERE, DEPENDING ON SPECIFIC TRIANGLE ORIENTATION !!!!
 				if ((b->bt[v_a] == v_b || b->bt[v_b] == v_a) || acc2[v_a_mirror] > -1){
 					printf("bichromatic subproblem for sp %d will be on faces %d, %d\n", sp, f2, v_b_mirror);
@@ -601,6 +634,11 @@ void bichromatic_decompose(struct bfs_struct* b, struct rmq_struct* r, struct tr
 					bichromatic_tripod( b, r, t, f2, v_a_mirror, acc, acc2);
 				}
 			}
+		}
+		else {
+			printf("special case involving the boundary of our planar graph\n"); //not necessarily the boundary...
+			printf("all vertices are different colours\n");
+			printf("are we done?\n"); //looks like it
 		}
 	}
 }
@@ -614,6 +652,10 @@ int* monochromatic_tripod(struct bfs_struct* b, struct rmq_struct* r, struct tri
 	printf("\n%d is one of our sperner triangles\nacc = ", sp); //sperner triangles are correctly identified
 	for (int k = 0; k < (b->v); k++){
 		printf("%d ", acc[k]);
+	}
+	printf("\nacc2 = ");
+	for (int i = 0; i < b->f; i++){
+		printf("%d ", acc2[i]);
 	}
 	printf("\n");
 
