@@ -11,6 +11,15 @@ int main(){
 
 	init(&b, &r, &t);
 
+	decompose(&b, &r, &t);
+
+	printf("vertex_tripod_assign = [ ");
+	for (int k = 0; k < ((&b)->v); k++){
+		printf("%d ", ((&t)->vertex_tripod_assign)[k]);
+	}
+	printf("]\n");
+
 	BFS_free(&b);
 	LCA_free(&r);
+	tripod_free(&t);
 }
