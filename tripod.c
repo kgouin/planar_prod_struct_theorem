@@ -24,12 +24,15 @@ void init(struct bfs_struct* b, struct rmq_struct* r, struct tripod_decompositio
 	for (int k = 1; k < (b->f); k++){
 		t->face_tripod_assign[k] = -1;
 	}
-	t->tripod_assign_order = malloc((b->f)*sizeof(int));
-	t->tripod_assign_order[0] = 0; //this is a special case, since 0 is the outer face
-	for (int k = 1; k < (b->f); k++){
+	t->tripod_assign_order = malloc(((b->f)+2)*sizeof(int));
+	//label the first three entries as the three exterior tripods that constitute our base case
+	t->tripod_assign_order[0] = (b->f);
+	t->tripod_assign_order[1] = (b->f)+1;
+	t->tripod_assign_order[2] = (b->f)+2;
+	for (int k = 3; k < ((b->f)+2); k++){
 		t->tripod_assign_order[k] = -1;
 	}
-	t->tripod_assign_order_index = 1;
+	t->tripod_assign_order_index = 3;
 
 	printf("--------------------------------------------------------------------------------------------------------------------------------\n");
 	printf("--------------------------------------------------------------------------------------------------------------------------------\n");
@@ -58,7 +61,7 @@ int* decompose(struct bfs_struct* b, struct rmq_struct* r, struct tripod_decompo
 	}
 	printf("]\n");
 	printf("tripod_assign_order = [ ");
-	for (int i = 0; i < (b->f); i++){
+	for (int i = 0; i < t->tripod_assign_order_index; i++){
 		printf("%d ", t->tripod_assign_order[i]);
 	}
 	printf("]\n");
@@ -74,9 +77,7 @@ int* trichromatic_tripod(struct bfs_struct* b, struct rmq_struct* r, struct trip
 	if (f1 == f2 && f1 == f3){
 		sp = f1;
 		t->face_tripod_assign[sp] = sp; //keep track of sperner triangles
-		//add tripod to t->tripod_assign_order at index t->tripod_assign_order_index
-		t->tripod_assign_order[t->tripod_assign_order_index] = sp;
-		t->tripod_assign_order_index++;
+		//don't add tripod to t->tripod_assign_order
 		return 0;
 	}
 	else if (f1 != f2 && f1 != f3 && f2 != f3){
@@ -93,9 +94,17 @@ int* trichromatic_tripod(struct bfs_struct* b, struct rmq_struct* r, struct trip
 	//store tripod
 	store_tripod(b, t, sp);
 
-	//add tripod to t->tripod_assign_order at index t->tripod_assign_order_index
-	t->tripod_assign_order[t->tripod_assign_order_index] = sp;
-	t->tripod_assign_order_index++;
+	if (t->vertex_tripod_assign[t->v_a] == sp || t->vertex_tripod_assign[t->v_b] == sp || t->vertex_tripod_assign[t->v_c] == sp){ //if one of {leg a, leg b, leg c} is non-empty
+		//add tripod to t->tripod_assign_order at index t->tripod_assign_order_index
+		t->tripod_assign_order[t->tripod_assign_order_index] = sp;
+		t->tripod_assign_order_index++;
+	}
+
+	//testing for 3-tree property
+	if (!three_tree_test(b, t, sp)){
+		printf("3-tree test failed\n");
+		exit(0);
+	}
 
 	printf("\n%d is one of our sperner triangles\nvertex_tripod_assign = ", sp); //sperner triangles are correctly identified
 	for (int k = 0; k < (b->v); k++){
@@ -341,9 +350,17 @@ int* bichromatic_tripod(struct bfs_struct* b, struct rmq_struct* r, struct tripo
 
 	store_tripod(b, t, sp);
 
-	//add tripod to t->tripod_assign_order at index t->tripod_assign_order_index
-	t->tripod_assign_order[t->tripod_assign_order_index] = sp;
-	t->tripod_assign_order_index++;
+	if (t->vertex_tripod_assign[t->v_a] == sp || t->vertex_tripod_assign[t->v_b] == sp || t->vertex_tripod_assign[t->v_c] == sp){ //if one of {leg a, leg b, leg c} is non-empty
+		//add tripod to t->tripod_assign_order at index t->tripod_assign_order_index
+		t->tripod_assign_order[t->tripod_assign_order_index] = sp;
+		t->tripod_assign_order_index++;
+	}
+
+	//testing for 3-tree property
+	if (!three_tree_test(b, t, sp)){
+		printf("3-tree test failed\n");
+		exit(0);
+	}
 
 	printf("\n%d is one of our sperner triangles\nvertex_tripod_assign = ", sp); //sperner triangles are correctly identified
 	for (int k = 0; k < (b->v); k++){
@@ -648,9 +665,17 @@ int* monochromatic_tripod(struct bfs_struct* b, struct rmq_struct* r, struct tri
 
 	store_tripod(b, t, sp);
 
-	//add tripod to t->tripod_assign_order at index t->tripod_assign_order_index
-	t->tripod_assign_order[t->tripod_assign_order_index] = sp;
-	t->tripod_assign_order_index++;
+	if (t->vertex_tripod_assign[t->v_a] == sp || t->vertex_tripod_assign[t->v_b] == sp || t->vertex_tripod_assign[t->v_c] == sp){ //if one of {leg a, leg b, leg c} is non-empty
+		//add tripod to t->tripod_assign_order at index t->tripod_assign_order_index
+		t->tripod_assign_order[t->tripod_assign_order_index] = sp;
+		t->tripod_assign_order_index++;
+	}
+
+	//testing for 3-tree property
+	if (!three_tree_test(b, t, sp)){
+		printf("3-tree test failed\n");
+		exit(0);
+	}
 
 	printf("\n%d is one of our sperner triangles\nvertex_tripod_assign = ", sp); //sperner triangles are correctly identified
 	for (int k = 0; k < (b->v); k++){
@@ -910,13 +935,59 @@ void tripod_free(struct tripod_decomposition_struct* t){
 	free(t->tripod_assign_order);
 }
 
-//sanity check for 3-tree property:
-//for each vertex v
-	//for each neighbour of v
-		//look at the tripods the neighbours of v belong to
-		//should be same tripod as v, or one of v's tripod parents (tripods on the boundary when you found the tripod)
+int three_tree_test(struct bfs_struct* b, struct tripod_decomposition_struct* t, int sp){
+	//sanity check for 3-tree property
+	//for each vertex v of sp adjacent to another tripod
+	//look at the tripod v belongs to
+	//should be same tripod as v, or one of v's tripod parents (tripods on the boundary when we found the tripod)
+	//all parents have smaller index
+	//everyone has at most three parents
 
-//all parents have smaller index
-//everyone has at most three parents
+	int colour_a;
+	int colour_b;
+	int colour_c;
+	(t->v_a_next == -1) ? (colour_a = t->vertex_tripod_assign[t->v_a]) : (colour_a = t->vertex_tripod_assign[t->v_a_next]);
+	(t->v_b_next == -1) ? (colour_b = t->vertex_tripod_assign[t->v_b]) : (colour_b = t->vertex_tripod_assign[t->v_b_next]);
+	(t->v_c_next == -1) ? (colour_c = t->vertex_tripod_assign[t->v_c]) : (colour_c = t->vertex_tripod_assign[t->v_c_next]);
 
-//add list of tripods in the order in which they appear
+	int vertex_index = -1;
+	for (int m = 0; m < t->tripod_assign_order_index; m++){ //for each previously found tripod
+		if (colour_a == t->tripod_assign_order[m]){
+			vertex_index = m;
+		}
+	}
+	if (vertex_index == -1){ //this means the parent tripod doesn't exist
+		return 0;
+	}
+	else if (vertex_index > t->tripod_assign_order_index){ //this shouldn't be possible
+		return 0;
+	}
+
+	vertex_index = -1;
+	for (int m = 0; m < t->tripod_assign_order_index; m++){ //for each previously found tripod
+		if (colour_b == t->tripod_assign_order[m]){
+			vertex_index = m;
+		}
+	}
+	if (vertex_index == -1){ //this means the parent tripod doesn't exist
+		return 0;
+	}
+	else if (vertex_index > t->tripod_assign_order_index){ //this shouldn't be possible
+		return 0;
+	}
+
+	vertex_index = -1;
+	for (int m = 0; m < t->tripod_assign_order_index; m++){ //for each previously found tripod
+		if (colour_c == t->tripod_assign_order[m]){
+			vertex_index = m;
+		}
+	}
+	if (vertex_index == -1){ //this means the parent tripod doesn't exist
+		return 0;
+	}
+	else if (vertex_index > t->tripod_assign_order_index){ //this shouldn't be possible
+		return 0;
+	}
+
+	return 1;
+}

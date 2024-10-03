@@ -49,3 +49,5 @@ void monochromatic_decompose(struct bfs_struct*, struct rmq_struct*, struct trip
 void tprint(struct tripod_decomposition_struct*);
 
 void tripod_free(struct tripod_decomposition_struct*);
+
+int three_tree_test(struct bfs_struct*, struct tripod_decomposition_struct*, int);
