@@ -43,6 +43,16 @@ void init(struct bfs_struct* b, struct rmq_struct* r, struct tripod_decompositio
 		printf("%d ", b->bt[k]);
 	}
 	printf("\n");
+
+	//write bfs to file for later visualization
+	FILE *fd;
+	fd = fopen("bfs.txt", "w");
+	if (!fd) exit(1);
+	fprintf(fd, "%d\n", b->v);
+	for (int i = 0; i < b->v; i++){
+		fprintf(fd, "%d\n", b->bt[i]);
+	}
+	fclose(fd);
 }
 
 int* decompose(struct bfs_struct* b, struct rmq_struct* r, struct tripod_decomposition_struct* t){
@@ -89,7 +99,12 @@ int* trichromatic_tripod(struct bfs_struct* b, struct rmq_struct* r, struct trip
 			else if (LCA_query(r, f1, f3) == LCA_query(r, f2, f3)) sp = LCA_query(r, f1, f2);
 		}
 	}
-	else sp = f1;
+	else { //if two of the three input triangles are the same
+		//then they are (it is) the sperner triangle
+		//performing LCA on f1, f2, and f3 may lead to an incorrect selection of sp
+		if (f1 == f2) sp = f1;
+		else sp = f3;
+	}
 
 	//store tripod
 	store_tripod(b, t, sp);
@@ -115,6 +130,18 @@ int* trichromatic_tripod(struct bfs_struct* b, struct rmq_struct* r, struct trip
 		printf("%d ", t->face_tripod_assign[i]);
 	}
 	printf("\n");
+
+	for (int i = 0; i < (b->f); i++){
+		if (t->face_tripod_assign[f1] == f1 || t->face_tripod_assign[f2] == f2 || t->face_tripod_assign[f3] == f3){
+			printf("one of our input triangles is a sperner triangle. exiting.\n");
+			printf("tripod_assign_order = [ ");
+			for (int k = 0; k < t->tripod_assign_order_index; k++){
+				printf("%d ", (t->tripod_assign_order)[k]);
+			}
+			printf("]\n");
+			exit(0);
+		}
+	}
 
 	t->face_tripod_assign[sp] = sp; //keep track of sperner triangles
 
@@ -373,8 +400,13 @@ int* bichromatic_tripod(struct bfs_struct* b, struct rmq_struct* r, struct tripo
 	printf("\n");
 
 	for (int i = 0; i < (b->f); i++){
-		if (t->face_tripod_assign[sp] == sp){
-			printf("sperner triangle already found. exiting.\n");
+		if (t->face_tripod_assign[f1] == f1 || t->face_tripod_assign[f2] == f2){
+			printf("one of our input triangles is a sperner triangle. exiting.\n");
+			printf("tripod_assign_order = [ ");
+			for (int k = 0; k < t->tripod_assign_order_index; k++){
+				printf("%d ", (t->tripod_assign_order)[k]);
+			}
+			printf("]\n");
 			exit(0);
 		}
 	}
@@ -521,26 +553,30 @@ void bichromatic_decompose(struct bfs_struct* b, struct rmq_struct* r, struct tr
 			//v_a_mirror will have two of its vertices the same colour as v_a and v_b
 			//v_a_mirror's third vertex is either the same colour as v_a and v_b, or is uncoloured
 			
-			if ((b->bt[v_b] == v_a || b->bt[v_a] == v_b) && (f1 != f2)){
+			if ((b->bt[v_b] == v_a || b->bt[v_a] == v_b) && (f1 != f2)){ //problem here. we're not always picking the right mirror triangle
 				//if v_a is a bfs parent of v_b or v_b is a bfs parent of v_a, then we are in case 5.4
 				if (t->face_tripod_assign[v_b_mirror] == -1){
 					printf("we have one subproblem for sp %d: bichromatic\n", sp);
+					printf("here 1\n");
 					printf("bichromatic subproblem for sp %d will be on faces %d, %d\n", sp, f2, v_b_mirror);
 					bichromatic_tripod( b, r, t, f2, v_b_mirror);
 				}
 				else if (t->face_tripod_assign[v_c_mirror] == -1){
 					printf("we have one subproblem for sp %d: bichromatic\n", sp);
+					printf("here 2\n");
 					printf("bichromatic subproblem for sp %d will be on faces %d, %d\n", sp, f2, v_c_mirror);
 					bichromatic_tripod( b, r, t, f2, v_c_mirror);
 				}
 			}
 			//otherwise, we are in case 5.3 or 5.5
 			else if (f1 == f2){
-				if (t->face_tripod_assign[v_a_mirror] == -1){ //make sure subproblem exists
-					//if f1 == f2 then we are in case 5.5
-					printf("we have one subproblem for sp %d: monochromatic\n", sp);
-					printf("monochromatic subproblem for sp %d will be on face %d\n", sp, v_a_mirror);
-					monochromatic_tripod( b, r, t, v_a_mirror);
+				if (b->bt[v_b] != v_a && b->bt[v_a] != v_b){ //are we crossing a coloured edge? if not:
+					if (t->face_tripod_assign[v_a_mirror] == -1){ //are we about to select a sp on which to recurse? if not:
+						//if f1 == f2 then we are in case 5.5
+						printf("we have one subproblem for sp %d: monochromatic\n", sp);
+						printf("monochromatic subproblem for sp %d will be on face %d\n", sp, v_a_mirror);
+						monochromatic_tripod( b, r, t, v_a_mirror);
+					}
 				}
 			}
 			else {
@@ -553,8 +589,9 @@ void bichromatic_decompose(struct bfs_struct* b, struct rmq_struct* r, struct tr
 				}
 				else {
 					printf("we have one subproblem for sp %d: bichromatic\n", sp);
+					printf("here 3\n");
 				}
-				//DIFFERENT CASES HERE, DEPENDING ON SPECIFIC TRIANGLE ORIENTATION !!!!
+				//DIFFERENT CASES HERE, DEPENDING ON SPECIFIC TRIANGLE ORIENTATION
 				if ((b->bt[v_b] == v_c || b->bt[v_c] == v_b) || t->face_tripod_assign[v_b_mirror] > -1){
 					if (t->face_tripod_assign[v_c_mirror] == -1){
 						printf("bichromatic subproblem for sp %d will be on faces %d, %d\n", sp, f2, v_c_mirror);
@@ -591,11 +628,13 @@ void bichromatic_decompose(struct bfs_struct* b, struct rmq_struct* r, struct tr
 			}
 			//otherwise, we are in case 5.3 or 5.5
 			else if (f1 == f2){
-				if (t->face_tripod_assign[v_b_mirror] == -1){ //make sure subproblem exists
-					//if f1 == f2 then we are in case 5.5
-					printf("we have one subproblem for sp %d: monochromatic\n", sp);
-					printf("monochromatic subproblem for sp %d will be on face %d\n", sp, v_b_mirror);
-					monochromatic_tripod( b, r, t, v_b_mirror);
+				if (b->bt[v_c] != v_b && b->bt[v_b] != v_c){ //are we crossing a coloured edge? if not:
+					if (t->face_tripod_assign[v_b_mirror] == -1){ //are we about to select a sp on which to recurse? if not:
+						//if f1 == f2 then we are in case 5.5
+						printf("we have one subproblem for sp %d: monochromatic\n", sp);
+						printf("monochromatic subproblem for sp %d will be on face %d\n", sp, v_b_mirror);
+						monochromatic_tripod( b, r, t, v_b_mirror);
+					}
 				}
 			}
 			else {
@@ -609,7 +648,7 @@ void bichromatic_decompose(struct bfs_struct* b, struct rmq_struct* r, struct tr
 				else {
 					printf("we have one subproblem for sp %d: bichromatic\n", sp);
 				}
-				//DIFFERENT CASES HERE, DEPENDING ON SPECIFIC TRIANGLE ORIENTATION !!!!
+				//DIFFERENT CASES HERE, DEPENDING ON SPECIFIC TRIANGLE ORIENTATION
 				if ((b->bt[v_c] == v_a || b->bt[v_a] == v_c) || t->face_tripod_assign[v_c_mirror] > -1){
 					if (t->face_tripod_assign[v_a_mirror] == -1){
 						printf("bichromatic subproblem for sp %d will be on faces %d, %d\n", sp, f2, v_a_mirror);
@@ -646,11 +685,13 @@ void bichromatic_decompose(struct bfs_struct* b, struct rmq_struct* r, struct tr
 			}
 			//otherwise, we are in case 5.3 or 5.5
 			else if (f1 == f2){
-				if (t->face_tripod_assign[v_c_mirror] == -1){ //make sure subproblem exists
-					//if f1 == f2 then we are in case 5.5
-					printf("we have one subproblem for sp %d: monochromatic\n", sp);
-					printf("monochromatic subproblem for sp %d will be on face %d\n", sp, v_c_mirror);
-					monochromatic_tripod( b, r, t, v_c_mirror);
+				if (b->bt[v_a] != v_c && b->bt[v_c] != v_a){ //are we crossing a coloured edge? if not:
+					if (t->face_tripod_assign[v_c_mirror] == -1){ //are we about to select a sp on which to recurse? if not:
+						//if f1 == f2 then we are in case 5.5
+						printf("we have one subproblem for sp %d: monochromatic\n", sp);
+						printf("monochromatic subproblem for sp %d will be on face %d\n", sp, v_c_mirror);
+						monochromatic_tripod( b, r, t, v_c_mirror);
+					}
 				}
 			}
 			else {
@@ -664,7 +705,7 @@ void bichromatic_decompose(struct bfs_struct* b, struct rmq_struct* r, struct tr
 				else {
 					printf("we have one subproblem for sp %d: bichromatic\n", sp);
 				}
-				//DIFFERENT CASES HERE, DEPENDING ON SPECIFIC TRIANGLE ORIENTATION !!!!
+				//DIFFERENT CASES HERE, DEPENDING ON SPECIFIC TRIANGLE ORIENTATION
 				if ((b->bt[v_a] == v_b || b->bt[v_b] == v_a) || t->face_tripod_assign[v_a_mirror] > -1){
 					if (t->face_tripod_assign[v_b_mirror] == -1){
 						printf("bichromatic subproblem for sp %d will be on faces %d, %d\n", sp, f2, v_b_mirror);
@@ -718,6 +759,11 @@ int* monochromatic_tripod(struct bfs_struct* b, struct rmq_struct* r, struct tri
 	for (int i = 0; i < (b->f); i++){
 		if (t->face_tripod_assign[sp] == sp){
 			printf("sperner triangle already found. exiting.\n");
+			printf("tripod_assign_order = [ ");
+			for (int k = 0; k < t->tripod_assign_order_index; k++){
+				printf("%d ", (t->tripod_assign_order)[k]);
+			}
+			printf("]\n");
 			exit(0);
 		}
 	}
@@ -916,7 +962,7 @@ void monochromatic_decompose(struct bfs_struct* b, struct rmq_struct* r, struct 
 					monochromatic_tripod( b, r, t, v_a_mirror);
 				}
 			}
-			else { //v_c_mirror is a previous sp //should this be an else if?
+			else if (t->face_tripod_assign[v_c_mirror] > -1){ //v_c_mirror is a previous sp
 				//recurse on v_a_mirror and v_b_mirror
 				if (t->face_tripod_assign[v_a_mirror] == -1){ //make sure v_a_mirror is not a sp
 					printf("first monochromatic subproblem for sp %d will be on face %d\n", sp, v_a_mirror);
@@ -926,6 +972,9 @@ void monochromatic_decompose(struct bfs_struct* b, struct rmq_struct* r, struct 
 					printf("second monochromatic subproblem for sp %d will be on face %d\n", sp, v_b_mirror);
 					monochromatic_tripod( b, r, t, v_b_mirror);
 				}
+			}
+			else {
+				printf("else statement which we should never reach!!!!\n");
 			}
 		}
 	}
@@ -1047,3 +1096,17 @@ int three_tree_test(struct bfs_struct* b, struct tripod_decomposition_struct* t,
 
 	return 1;
 }
+
+int three_tree_test_pt2(struct bfs_struct* b, struct tripod_decomposition_struct* t){
+	return 1;
+}
+
+//something else to check (with a new function)
+//for each vertex make sure the parents are okay, and that a "parent" is not in fact a "grand-parent"
+//use the three_tree_test function to keep a list of vertices and their parents (like an ajdacency list but for ancestry)
+//then, at the end of the program, when the recursion terminates, call the new function
+//this new function is similar to three_tree_test, but it should catch an extra case where v has a parent beyond the boundary of its three defining tripods
+//so, for each vertex v, look at the parent of tripod v belongs to
+//this should be same tripod as v, or one of v's tripod parents (tripods on the boundary when we found the tripod)
+//all parents have smaller index
+//everyone has at most three parents

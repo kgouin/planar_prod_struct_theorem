@@ -63,7 +63,7 @@ def triangulate(points):
     al = succ2al(succ)
     with open("adjacencies.txt", "w") as fp:
         fp.write("{}\n".format(n))
-        print(al)
+        #print(al)
         for i in range(n):
             # length of adjacency list
             fp.write("{} ".format(len(al[i])))
@@ -72,7 +72,7 @@ def triangulate(points):
             fp.write("{} ".format(" ".join([str(j) for j in al[i]])))
 
             # incidence list (triangles)
-            print(al[i])
+            #print(al[i])
             fp.write("{}\n".format(" ".join([str(left_of[i][j]) for j in al[i]])))
 
 

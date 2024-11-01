@@ -51,3 +51,4 @@ void tprint(struct tripod_decomposition_struct*);
 void tripod_free(struct tripod_decomposition_struct*);
 
 int three_tree_test(struct bfs_struct*, struct tripod_decomposition_struct*, int);
+int three_tree_test_pt2(struct bfs_struct* b, struct tripod_decomposition_struct* t);
