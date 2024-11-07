@@ -1,0 +1,741 @@
+--------------------------------------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------------------------------------
+initialization complete
+bfs tree = -2 0 0 13 12 2 12 1 12 17 16 1 2 0 18 0 0 0 13 18 2 13 11 18 
+
+4 is one of our sperner triangles
+vertex_tripod_assign = 44 45 46 -1 4 -1 -1 -1 -1 -1 -1 4 4 4 4 -1 -1 -1 4 -1 -1 -1 4 -1 
+face_tripod_assign = 0 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 
+f = f1 = 8
+ORIENTATION 2
+
+v_a = 12
+v_b = 11
+v_c = 13
+v_a_next = 2
+v_b_next = 1
+v_c_next = 0
+v_a_mirror = 30
+v_b_mirror = 39
+v_c_mirror = 3
+v_a_op = 2
+v_b_op = 8
+v_c_op = 1
+
+subproblem x for sp 4 is trichromatic
+subproblem x for sp 4 will be on faces 2, 31, 2
+
+2 is one of our sperner triangles
+vertex_tripod_assign = 44 45 46 -1 4 -1 -1 -1 -1 -1 -1 4 4 4 4 -1 -1 -1 4 -1 -1 -1 4 -1 
+face_tripod_assign = 0 -1 -1 -1 4 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 
+f = f2 = 31
+ORIENTATION 1
+
+v_a = 1
+v_b = 12
+v_c = 2
+v_a_next = -1
+v_b_next = -1
+v_c_next = -1
+v_a_mirror = 31
+v_b_mirror = 27
+v_c_mirror = 0
+v_a_op = 31
+v_b_op = 2
+v_c_op = 2
+
+subproblem x for sp 2 is bichromatic
+subproblem x for sp 2 will be on faces 31, 31
+
+31 is one of our sperner triangles
+vertex_tripod_assign = 44 45 46 -1 4 -1 -1 -1 -1 -1 -1 4 4 4 4 -1 -1 -1 4 -1 -1 -1 4 -1 
+face_tripod_assign = 0 -1 2 -1 4 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 
+v_a = 11
+v_b = 12
+v_c = 1
+v_a_next = -1
+v_b_next = -1
+v_c_next = -1
+v_a_mirror = 32
+v_b_mirror = 2
+v_c_mirror = 29
+v_a_op = 31
+v_b_op = 2
+v_c_op = 2
+we have one subproblem for sp 31: monochromatic
+monochromatic subproblem for sp 31 will be on face 32
+
+32 is one of our sperner triangles
+vertex_tripod_assign = 44 45 46 -1 4 -1 -1 -1 -1 -1 -1 4 4 4 4 -1 -1 -1 4 -1 -1 -1 4 -1 
+face_tripod_assign = 0 -1 2 -1 4 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 31 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 
+v_a = 12
+v_b = 11
+v_c = 4
+v_a_next = -1
+v_b_next = -1
+v_c_next = -1
+v_a_mirror = 31
+v_b_mirror = 30
+v_c_mirror = 21
+we have one subproblem for sp 32: monochromatic
+monochromatic subproblem for sp 32 will be on face 30
+
+30 is one of our sperner triangles
+vertex_tripod_assign = 44 45 46 -1 4 -1 -1 -1 -1 -1 -1 4 4 4 4 -1 -1 -1 4 -1 -1 -1 4 -1 
+face_tripod_assign = 0 -1 2 -1 4 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 31 32 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 
+v_a = 11
+v_b = 22
+v_c = 4
+v_a_next = -1
+v_b_next = -1
+v_c_next = -1
+v_a_mirror = 40
+v_b_mirror = 4
+v_c_mirror = 32
+no subproblem x for sp 2
+no subproblem x for sp 2
+subproblem x for sp 4 is trichromatic
+subproblem x for sp 4 will be on faces 8, 10, 29
+
+38 is one of our sperner triangles
+vertex_tripod_assign = 44 45 46 -1 4 -1 -1 38 -1 38 -1 4 4 4 4 -1 -1 38 4 38 -1 -1 4 -1 
+face_tripod_assign = 0 -1 2 -1 4 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 30 31 32 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 
+f = f1 = 8
+ORIENTATION 2
+
+v_a = 19
+v_b = 7
+v_c = 17
+v_a_next = 18
+v_b_next = 1
+v_c_next = 0
+v_a_mirror = 37
+v_b_mirror = 14
+v_c_mirror = 42
+v_a_op = 29
+v_b_op = 8
+v_c_op = 10
+
+subproblem x for sp 38 is trichromatic
+subproblem x for sp 38 will be on faces 29, 29, 41
+
+29 is one of our sperner triangles
+vertex_tripod_assign = 44 45 46 -1 4 -1 -1 38 -1 38 -1 4 4 4 4 -1 -1 38 4 38 -1 -1 4 -1 
+face_tripod_assign = 0 -1 2 -1 4 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 30 31 32 -1 -1 -1 -1 -1 38 -1 -1 -1 -1 -1 
+f = f3 = 41
+ORIENTATION 1
+
+v_a = 7
+v_b = 11
+v_c = 1
+v_a_next = -1
+v_b_next = -1
+v_c_next = -1
+v_a_mirror = 37
+v_b_mirror = 31
+v_c_mirror = 14
+v_a_op = 41
+v_b_op = 29
+v_c_op = 29
+
+subproblem x for sp 29 is bichromatic
+subproblem x for sp 29 will be on faces 41, 37
+
+41 is one of our sperner triangles
+vertex_tripod_assign = 44 45 46 -1 4 -1 -1 38 -1 38 -1 4 4 4 4 -1 -1 38 4 38 -1 -1 4 -1 
+face_tripod_assign = 0 -1 2 -1 4 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 29 30 31 32 -1 -1 -1 -1 -1 38 -1 -1 -1 -1 -1 
+v_a = 19
+v_b = 18
+v_c = 14
+v_a_next = -1
+v_b_next = -1
+v_c_next = -1
+v_a_mirror = 43
+v_b_mirror = 16
+v_c_mirror = 39
+v_a_op = 41
+v_b_op = 29
+v_c_op = 29
+we have one subproblem for sp 41: bichromatic
+bichromatic subproblem for sp 41 will be on faces 37, 39
+
+37 is one of our sperner triangles
+vertex_tripod_assign = 44 45 46 -1 4 -1 -1 38 -1 38 -1 4 4 4 4 -1 -1 38 4 38 -1 -1 4 -1 
+face_tripod_assign = 0 -1 2 -1 4 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 29 30 31 32 -1 -1 -1 -1 -1 38 -1 -1 41 -1 -1 
+v_a = 19
+v_b = 11
+v_c = 7
+v_a_next = -1
+v_b_next = -1
+v_c_next = -1
+v_a_mirror = 40
+v_b_mirror = 29
+v_c_mirror = 38
+v_a_op = 41
+v_b_op = 29
+v_c_op = 29
+we have one subproblem for sp 37: bichromatic
+bichromatic subproblem for sp 37 will be on faces 39, 40
+
+39 is one of our sperner triangles
+vertex_tripod_assign = 44 45 46 -1 4 -1 -1 38 -1 38 -1 4 4 4 4 -1 -1 38 4 38 -1 -1 4 -1 
+face_tripod_assign = 0 -1 2 -1 4 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 29 30 31 32 -1 -1 -1 -1 37 38 -1 -1 41 -1 -1 
+v_a = 22
+v_b = 19
+v_c = 14
+v_a_next = -1
+v_b_next = -1
+v_c_next = -1
+v_a_mirror = 40
+v_b_mirror = 41
+v_c_mirror = 4
+v_a_op = 41
+v_b_op = 29
+v_c_op = 29
+we have one subproblem for sp 39: bichromatic
+bichromatic subproblem for sp 39 will be on faces 40, 40
+
+40 is one of our sperner triangles
+vertex_tripod_assign = 44 45 46 -1 4 -1 -1 38 -1 38 -1 4 4 4 4 -1 -1 38 4 38 -1 -1 4 -1 
+face_tripod_assign = 0 -1 2 -1 4 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 29 30 31 32 -1 -1 -1 -1 37 38 39 -1 41 -1 -1 
+v_a = 11
+v_b = 19
+v_c = 22
+v_a_next = -1
+v_b_next = -1
+v_c_next = -1
+v_a_mirror = 37
+v_b_mirror = 39
+v_c_mirror = 30
+v_a_op = 41
+v_b_op = 29
+v_c_op = 29
+no subproblem x for sp 29
+no subproblem x for sp 29
+subproblem x for sp 38 is trichromatic
+subproblem x for sp 38 will be on faces 8, 8, 14
+
+8 is one of our sperner triangles
+vertex_tripod_assign = 44 45 46 -1 4 -1 -1 38 -1 38 -1 4 4 4 4 -1 -1 38 4 38 -1 -1 4 -1 
+face_tripod_assign = 0 -1 2 -1 4 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 29 30 31 32 -1 -1 -1 -1 37 38 39 40 41 -1 -1 
+f = f3 = 14
+ORIENTATION 1
+
+v_a = 17
+v_b = 1
+v_c = 0
+v_a_next = -1
+v_b_next = -1
+v_c_next = -1
+v_a_mirror = 9
+v_b_mirror = 0
+v_c_mirror = 10
+v_a_op = 14
+v_b_op = 8
+v_c_op = 8
+
+subproblem x for sp 8 is bichromatic
+subproblem x for sp 8 will be on faces 14, 9
+
+14 is one of our sperner triangles
+vertex_tripod_assign = 44 45 46 -1 4 -1 -1 38 -1 38 -1 4 4 4 4 -1 -1 38 4 38 -1 -1 4 -1 
+face_tripod_assign = 0 -1 2 -1 4 -1 -1 -1 8 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 29 30 31 32 -1 -1 -1 -1 37 38 39 40 41 -1 -1 
+v_a = 9
+v_b = 7
+v_c = 1
+v_a_next = -1
+v_b_next = -1
+v_c_next = -1
+v_a_mirror = 38
+v_b_mirror = 29
+v_c_mirror = 9
+v_a_op = 14
+v_b_op = 8
+v_c_op = 8
+we have one subproblem for sp 14: bichromatic
+here 3
+bichromatic subproblem for sp 14 will be on faces 9, 9
+
+9 is one of our sperner triangles
+vertex_tripod_assign = 44 45 46 -1 4 -1 -1 38 -1 38 -1 4 4 4 4 -1 -1 38 4 38 -1 -1 4 -1 
+face_tripod_assign = 0 -1 2 -1 4 -1 -1 -1 8 -1 -1 -1 -1 -1 14 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 29 30 31 32 -1 -1 -1 -1 37 38 39 40 41 -1 -1 
+v_a = 17
+v_b = 9
+v_c = 1
+v_a_next = -1
+v_b_next = -1
+v_c_next = -1
+v_a_mirror = 7
+v_b_mirror = 14
+v_c_mirror = 8
+v_a_op = 14
+v_b_op = 8
+v_c_op = 8
+no subproblem x for sp 8
+no subproblem x for sp 8
+subproblem x for sp 38 is trichromatic
+subproblem x for sp 38 will be on faces 10, 43, 10
+
+10 is one of our sperner triangles
+vertex_tripod_assign = 44 45 46 -1 4 -1 -1 38 -1 38 -1 4 4 4 4 -1 -1 38 4 38 -1 -1 4 -1 
+face_tripod_assign = 0 -1 2 -1 4 -1 -1 -1 8 9 -1 -1 -1 -1 14 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 29 30 31 32 -1 -1 -1 -1 37 38 39 40 41 -1 -1 
+f = f2 = 43
+ORIENTATION 1
+
+v_a = 13
+v_b = 17
+v_c = 0
+v_a_next = -1
+v_b_next = -1
+v_c_next = -1
+v_a_mirror = 11
+v_b_mirror = 8
+v_c_mirror = 35
+v_a_op = 43
+v_b_op = 10
+v_c_op = 10
+
+subproblem x for sp 10 is bichromatic
+subproblem x for sp 10 will be on faces 43, 11
+
+43 is one of our sperner triangles
+vertex_tripod_assign = 44 45 46 43 4 -1 -1 38 -1 38 -1 4 4 4 4 -1 -1 38 4 38 -1 -1 4 -1 
+face_tripod_assign = 0 -1 2 -1 4 -1 -1 -1 8 9 10 -1 -1 -1 14 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 29 30 31 32 -1 -1 -1 -1 37 38 39 40 41 -1 -1 
+v_a = 18
+v_b = 19
+v_c = 3
+v_a_next = -1
+v_b_next = -1
+v_c_next = 13
+v_a_mirror = 41
+v_b_mirror = 42
+v_c_mirror = 5
+v_a_op = 43
+v_b_op = 10
+v_c_op = 10
+we have two subproblems for sp 43: trichromatic + bichromatic
+bichromatic subproblem for sp 43 will be on faces 5, 5
+
+5 is one of our sperner triangles
+vertex_tripod_assign = 44 45 46 43 4 -1 -1 38 -1 38 -1 4 4 4 4 -1 -1 38 4 38 -1 -1 4 -1 
+face_tripod_assign = 0 -1 2 -1 4 -1 -1 -1 8 9 10 -1 -1 -1 14 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 29 30 31 32 -1 -1 -1 -1 37 38 39 40 41 -1 43 
+v_a = 13
+v_b = 18
+v_c = 3
+v_a_next = -1
+v_b_next = -1
+v_c_next = -1
+v_a_mirror = 6
+v_b_mirror = 43
+v_c_mirror = 11
+v_a_op = 43
+v_b_op = 10
+v_c_op = 10
+trichromatic subproblem for sp 43 will be on faces 11, 11, 42
+
+11 is one of our sperner triangles
+vertex_tripod_assign = 44 45 46 43 4 -1 -1 38 -1 38 -1 4 4 4 4 -1 -1 38 4 38 -1 -1 4 -1 
+face_tripod_assign = 0 -1 2 -1 4 5 -1 -1 8 9 10 -1 -1 -1 14 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 29 30 31 32 -1 -1 -1 -1 37 38 39 40 41 -1 43 
+f = f3 = 42
+ORIENTATION 3
+
+v_a = 17
+v_b = 13
+v_c = 3
+v_a_next = -1
+v_b_next = -1
+v_c_next = -1
+v_a_mirror = 10
+v_b_mirror = 5
+v_c_mirror = 7
+v_a_op = 11
+v_b_op = 11
+v_c_op = 42
+
+no subproblem x for sp 11
+no subproblem x for sp 11
+subproblem x for sp 11 is bichromatic
+subproblem x for sp 11 will be on faces 42, 7
+
+42 is one of our sperner triangles
+vertex_tripod_assign = 44 45 46 43 4 -1 -1 38 -1 38 -1 4 4 4 4 -1 -1 38 4 38 -1 -1 4 -1 
+face_tripod_assign = 0 -1 2 -1 4 5 -1 -1 8 9 10 11 -1 -1 14 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 29 30 31 32 -1 -1 -1 -1 37 38 39 40 41 -1 43 
+v_a = 3
+v_b = 19
+v_c = 9
+v_a_next = -1
+v_b_next = -1
+v_c_next = -1
+v_a_mirror = 43
+v_b_mirror = 38
+v_c_mirror = 7
+v_a_op = 11
+v_b_op = 11
+v_c_op = 42
+we have one subproblem for sp 42: bichromatic
+bichromatic subproblem for sp 42 will be on faces 7, 7
+
+7 is one of our sperner triangles
+vertex_tripod_assign = 44 45 46 43 4 -1 -1 38 -1 38 -1 4 4 4 4 -1 -1 38 4 38 -1 -1 4 -1 
+face_tripod_assign = 0 -1 2 -1 4 5 -1 -1 8 9 10 11 -1 -1 14 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 29 30 31 32 -1 -1 -1 -1 37 38 39 40 41 42 43 
+v_a = 17
+v_b = 3
+v_c = 9
+v_a_next = -1
+v_b_next = -1
+v_c_next = -1
+v_a_mirror = 11
+v_b_mirror = 42
+v_c_mirror = 9
+v_a_op = 11
+v_b_op = 11
+v_c_op = 42
+no subproblem x for sp 10
+no subproblem x for sp 10
+subproblem x for sp 4 is trichromatic
+subproblem x for sp 4 will be on faces 1, 27, 35
+
+20 is one of our sperner triangles
+vertex_tripod_assign = 44 45 46 43 4 -1 -1 38 -1 38 20 4 4 4 4 -1 20 38 4 38 20 20 4 -1 
+face_tripod_assign = 0 -1 2 -1 4 5 -1 7 8 9 10 11 -1 -1 14 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 29 30 31 32 -1 -1 -1 -1 37 38 39 40 41 42 43 
+f = f1 = 1
+ORIENTATION 1
+
+v_a = 16
+v_b = 20
+v_c = 21
+v_a_next = 0
+v_b_next = 2
+v_c_next = 13
+v_a_mirror = 19
+v_b_mirror = 24
+v_c_mirror = 18
+v_a_op = 1
+v_b_op = 27
+v_c_op = 35
+
+subproblem x for sp 20 is trichromatic
+subproblem x for sp 20 will be on faces 1, 12, 1
+
+1 is one of our sperner triangles
+vertex_tripod_assign = 44 45 46 43 4 -1 -1 38 -1 38 20 4 4 4 4 -1 20 38 4 38 20 20 4 -1 
+face_tripod_assign = 0 -1 2 -1 4 5 -1 7 8 9 10 11 -1 -1 14 -1 -1 -1 -1 -1 20 -1 -1 -1 -1 -1 -1 -1 -1 29 30 31 32 -1 -1 -1 -1 37 38 39 40 41 42 43 
+f = f2 = 12
+ORIENTATION 1
+
+v_a = 2
+v_b = 16
+v_c = 0
+v_a_next = -1
+v_b_next = -1
+v_c_next = -1
+v_a_mirror = 12
+v_b_mirror = 33
+v_c_mirror = 0
+v_a_op = 12
+v_b_op = 1
+v_c_op = 1
+
+subproblem x for sp 1 is bichromatic
+subproblem x for sp 1 will be on faces 12, 12
+
+12 is one of our sperner triangles
+vertex_tripod_assign = 44 45 46 43 4 -1 -1 38 -1 38 20 4 4 4 4 -1 20 38 4 38 20 20 4 -1 
+face_tripod_assign = 0 1 2 -1 4 5 -1 7 8 9 10 11 -1 -1 14 -1 -1 -1 -1 -1 20 -1 -1 -1 -1 -1 -1 -1 -1 29 30 31 32 -1 -1 -1 -1 37 38 39 40 41 42 43 
+v_a = 20
+v_b = 16
+v_c = 2
+v_a_next = -1
+v_b_next = -1
+v_c_next = -1
+v_a_mirror = 19
+v_b_mirror = 1
+v_c_mirror = 28
+v_a_op = 12
+v_b_op = 1
+v_c_op = 1
+we have one subproblem for sp 12: monochromatic
+monochromatic subproblem for sp 12 will be on face 19
+
+19 is one of our sperner triangles
+vertex_tripod_assign = 44 45 46 43 4 -1 -1 38 -1 38 20 4 4 4 4 -1 20 38 4 38 20 20 4 -1 
+face_tripod_assign = 0 1 2 -1 4 5 -1 7 8 9 10 11 12 -1 14 -1 -1 -1 -1 -1 20 -1 -1 -1 -1 -1 -1 -1 -1 29 30 31 32 -1 -1 -1 -1 37 38 39 40 41 42 43 
+v_a = 20
+v_b = 10
+v_c = 16
+v_a_next = -1
+v_b_next = -1
+v_c_next = -1
+v_a_mirror = 20
+v_b_mirror = 34
+v_c_mirror = 12
+no subproblem x for sp 1
+no subproblem x for sp 1
+subproblem x for sp 20 is trichromatic
+subproblem x for sp 20 will be on faces 27, 6, 28
+
+25 is one of our sperner triangles
+vertex_tripod_assign = 44 45 46 43 4 25 -1 38 25 38 20 4 4 4 4 -1 20 38 4 38 20 20 4 -1 
+face_tripod_assign = 0 1 2 -1 4 5 -1 7 8 9 10 11 12 -1 14 -1 -1 -1 -1 19 20 -1 -1 -1 -1 -1 -1 -1 -1 29 30 31 32 -1 -1 -1 -1 37 38 39 40 41 42 43 
+f = f1 = 27
+ORIENTATION 1
+
+v_a = 5
+v_b = 8
+v_c = 21
+v_a_next = 2
+v_b_next = 12
+v_c_next = -1
+v_a_mirror = 26
+v_b_mirror = 13
+v_c_mirror = 24
+v_a_op = 27
+v_b_op = 6
+v_c_op = 28
+
+subproblem x for sp 25 is trichromatic
+subproblem x for sp 25 will be on faces 27, 26, 27
+
+27 is one of our sperner triangles
+vertex_tripod_assign = 44 45 46 43 4 25 -1 38 25 38 20 4 4 4 4 -1 20 38 4 38 20 20 4 -1 
+face_tripod_assign = 0 1 2 -1 4 5 -1 7 8 9 10 11 12 -1 14 -1 -1 -1 -1 19 20 -1 -1 -1 -1 25 -1 -1 -1 29 30 31 32 -1 -1 -1 -1 37 38 39 40 41 42 43 
+f = f2 = 26
+ORIENTATION 1
+
+v_a = 12
+v_b = 5
+v_c = 2
+v_a_next = -1
+v_b_next = -1
+v_c_next = -1
+v_a_mirror = 26
+v_b_mirror = 28
+v_c_mirror = 2
+v_a_op = 26
+v_b_op = 27
+v_c_op = 27
+
+subproblem x for sp 27 is bichromatic
+subproblem x for sp 27 will be on faces 26, 26
+
+26 is one of our sperner triangles
+vertex_tripod_assign = 44 45 46 43 4 25 -1 38 25 38 20 4 4 4 4 -1 20 38 4 38 20 20 4 -1 
+face_tripod_assign = 0 1 2 -1 4 5 -1 7 8 9 10 11 12 -1 14 -1 -1 -1 -1 19 20 -1 -1 -1 -1 25 -1 27 -1 29 30 31 32 -1 -1 -1 -1 37 38 39 40 41 42 43 
+v_a = 8
+v_b = 5
+v_c = 12
+v_a_next = -1
+v_b_next = -1
+v_c_next = -1
+v_a_mirror = 25
+v_b_mirror = 27
+v_c_mirror = 23
+v_a_op = 26
+v_b_op = 27
+v_c_op = 27
+no subproblem x for sp 27
+no subproblem x for sp 27
+subproblem x for sp 25 is trichromatic
+subproblem x for sp 25 will be on faces 6, 13, 23
+
+13 is one of our sperner triangles
+vertex_tripod_assign = 44 45 46 43 4 25 -1 38 25 38 20 4 4 4 4 -1 20 38 4 38 20 20 4 -1 
+face_tripod_assign = 0 1 2 -1 4 5 -1 7 8 9 10 11 12 -1 14 -1 -1 -1 -1 19 20 -1 -1 -1 -1 25 26 27 -1 29 30 31 32 -1 -1 -1 -1 37 38 39 40 41 42 43 
+f = f1 = 6
+ORIENTATION 3
+
+v_a = 21
+v_b = 8
+v_c = 4
+v_a_next = -1
+v_b_next = -1
+v_c_next = -1
+v_a_mirror = 25
+v_b_mirror = 22
+v_c_mirror = 3
+v_a_op = 13
+v_b_op = 23
+v_c_op = 6
+
+no subproblem x for sp 13
+subproblem x for sp 13 is bichromatic
+subproblem x for sp 13 will be on faces 23, 22
+
+23 is one of our sperner triangles
+vertex_tripod_assign = 44 45 46 43 4 25 23 38 25 38 20 4 4 4 4 -1 20 38 4 38 20 20 4 -1 
+face_tripod_assign = 0 1 2 -1 4 5 -1 7 8 9 10 11 12 13 14 -1 -1 -1 -1 19 20 -1 -1 -1 -1 25 26 27 -1 29 30 31 32 -1 -1 -1 -1 37 38 39 40 41 42 43 
+v_a = 6
+v_b = 8
+v_c = 12
+v_a_next = 12
+v_b_next = -1
+v_c_next = -1
+v_a_mirror = 22
+v_b_mirror = 26
+v_c_mirror = 21
+v_a_op = 13
+v_b_op = 23
+v_c_op = 6
+we have one subproblem for sp 23: trichromatic
+subproblem for sp 23 will be on faces 22, 21, 22
+
+22 is one of our sperner triangles
+vertex_tripod_assign = 44 45 46 43 4 25 23 38 25 38 20 4 4 4 4 -1 20 38 4 38 20 20 4 -1 
+face_tripod_assign = 0 1 2 -1 4 5 -1 7 8 9 10 11 12 13 14 -1 -1 -1 -1 19 20 -1 -1 23 -1 25 26 27 -1 29 30 31 32 -1 -1 -1 -1 37 38 39 40 41 42 43 
+f = f2 = 21
+ORIENTATION 2
+
+v_a = 8
+v_b = 6
+v_c = 4
+v_a_next = -1
+v_b_next = -1
+v_c_next = -1
+v_a_mirror = 23
+v_b_mirror = 21
+v_c_mirror = 13
+v_a_op = 22
+v_b_op = 21
+v_c_op = 22
+
+no subproblem x for sp 22
+subproblem x for sp 22 is bichromatic
+subproblem x for sp 22 will be on faces 21, 21
+
+21 is one of our sperner triangles
+vertex_tripod_assign = 44 45 46 43 4 25 23 38 25 38 20 4 4 4 4 -1 20 38 4 38 20 20 4 -1 
+face_tripod_assign = 0 1 2 -1 4 5 -1 7 8 9 10 11 12 13 14 -1 -1 -1 -1 19 20 -1 22 23 -1 25 26 27 -1 29 30 31 32 -1 -1 -1 -1 37 38 39 40 41 42 43 
+v_a = 6
+v_b = 12
+v_c = 4
+v_a_next = -1
+v_b_next = -1
+v_c_next = -1
+v_a_mirror = 23
+v_b_mirror = 32
+v_c_mirror = 22
+v_a_op = 22
+v_b_op = 21
+v_c_op = 22
+no subproblem x for sp 22
+subproblem x for sp 13 is bichromatic
+subproblem x for sp 13 will be on faces 6, 3
+
+6 is one of our sperner triangles
+vertex_tripod_assign = 44 45 46 43 4 25 23 38 25 38 20 4 4 4 4 -1 20 38 4 38 20 20 4 -1 
+face_tripod_assign = 0 1 2 -1 4 5 -1 7 8 9 10 11 12 13 14 -1 -1 -1 -1 19 20 21 22 23 -1 25 26 27 -1 29 30 31 32 -1 -1 -1 -1 37 38 39 40 41 42 43 
+v_a = 18
+v_b = 13
+v_c = 21
+v_a_next = -1
+v_b_next = -1
+v_c_next = -1
+v_a_mirror = 5
+v_b_mirror = 18
+v_c_mirror = 17
+v_a_op = 22
+v_b_op = 21
+v_c_op = 22
+we have one subproblem for sp 6: bichromatic
+here 1
+bichromatic subproblem for sp 6 will be on faces 3, 18
+
+3 is one of our sperner triangles
+vertex_tripod_assign = 44 45 46 43 4 25 23 38 25 38 20 4 4 4 4 -1 20 38 4 38 20 20 4 -1 
+face_tripod_assign = 0 1 2 -1 4 5 6 7 8 9 10 11 12 13 14 -1 -1 -1 -1 19 20 21 22 23 -1 25 26 27 -1 29 30 31 32 -1 -1 -1 -1 37 38 39 40 41 42 43 
+v_a = 21
+v_b = 4
+v_c = 14
+v_a_next = -1
+v_b_next = -1
+v_c_next = -1
+v_a_mirror = 13
+v_b_mirror = 4
+v_c_mirror = 15
+v_a_op = 22
+v_b_op = 21
+v_c_op = 22
+we have one subproblem for sp 3: bichromatic
+bichromatic subproblem for sp 3 will be on faces 18, 15
+
+18 is one of our sperner triangles
+vertex_tripod_assign = 44 45 46 43 4 25 23 38 25 38 20 4 4 4 4 -1 20 38 4 38 20 20 4 -1 
+face_tripod_assign = 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 -1 -1 -1 -1 19 20 21 22 23 -1 25 26 27 -1 29 30 31 32 -1 -1 -1 -1 37 38 39 40 41 42 43 
+v_a = 13
+v_b = 10
+v_c = 21
+v_a_next = -1
+v_b_next = -1
+v_c_next = -1
+v_a_mirror = 36
+v_b_mirror = 20
+v_c_mirror = 6
+v_a_op = 22
+v_b_op = 21
+v_c_op = 22
+we have one subproblem for sp 18: bichromatic
+bichromatic subproblem for sp 18 will be on faces 15, 36
+
+15 is one of our sperner triangles
+vertex_tripod_assign = 44 45 46 43 4 25 23 38 25 38 20 4 4 4 4 -1 20 38 4 38 20 20 4 15 
+face_tripod_assign = 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 -1 -1 -1 18 19 20 21 22 23 -1 25 26 27 -1 29 30 31 32 -1 -1 -1 -1 37 38 39 40 41 42 43 
+v_a = 23
+v_b = 21
+v_c = 14
+v_a_next = 18
+v_b_next = -1
+v_c_next = -1
+v_a_mirror = 17
+v_b_mirror = 3
+v_c_mirror = 16
+v_a_op = 22
+v_b_op = 21
+v_c_op = 22
+we have two subproblems for sp 15: trichromatic + bichromatic
+bichromatic subproblem for sp 15 will be on faces 16, 16
+
+16 is one of our sperner triangles
+vertex_tripod_assign = 44 45 46 43 4 25 23 38 25 38 20 4 4 4 4 -1 20 38 4 38 20 20 4 15 
+face_tripod_assign = 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 -1 -1 18 19 20 21 22 23 -1 25 26 27 -1 29 30 31 32 -1 -1 -1 -1 37 38 39 40 41 42 43 
+v_a = 18
+v_b = 23
+v_c = 14
+v_a_next = -1
+v_b_next = -1
+v_c_next = -1
+v_a_mirror = 17
+v_b_mirror = 15
+v_c_mirror = 41
+v_a_op = 22
+v_b_op = 21
+v_c_op = 22
+trichromatic subproblem for sp 15 will be on faces 36, 17, 17
+
+17 is one of our sperner triangles
+vertex_tripod_assign = 44 45 46 43 4 25 23 38 25 38 20 4 4 4 4 -1 20 38 4 38 20 20 4 15 
+face_tripod_assign = 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 -1 18 19 20 21 22 23 -1 25 26 27 -1 29 30 31 32 -1 -1 -1 -1 37 38 39 40 41 42 43 
+f = f1 = 36
+ORIENTATION 2
+
+v_a = 23
+v_b = 18
+v_c = 21
+v_a_next = -1
+v_b_next = -1
+v_c_next = -1
+v_a_mirror = 16
+v_b_mirror = 6
+v_c_mirror = 15
+v_a_op = 17
+v_b_op = 36
+v_c_op = 17
+
+no subproblem x for sp 17
+subproblem x for sp 17 is bichromatic
+subproblem x for sp 17 will be on faces 36, 6
+
+36 is one of our sperner triangles
+vertex_tripod_assign = 44 45 46 43 4 25 23 38 25 38 20 4 4 4 4 36 20 38 4 38 20 20 4 15 
+face_tripod_assign = 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 -1 25 26 27 -1 29 30 31 32 -1 -1 -1 -1 37 38 39 40 41 42 43 
+one of our input triangles is a sperner triangle. exiting.
+tripod_assign_order = [ 44 45 46 4 38 43 20 25 23 15 36 ]

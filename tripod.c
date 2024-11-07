@@ -16,31 +16,36 @@ void init(struct bfs_struct* b, struct rmq_struct* r, struct tripod_decompositio
 	t->vertex_tripod_assign[b->sim[0][0]] = (b->f);
 	t->vertex_tripod_assign[b->sim[0][1]] = (b->f)+1;
 	t->vertex_tripod_assign[b->sim[0][2]] = (b->f)+2;
-	for (int k = 3; k < (b->v); k++){
-		t->vertex_tripod_assign[k] = -1; //label remaining vertices with -1
+	for (int i = 3; i < (b->v); i++){
+		t->vertex_tripod_assign[i] = -1; //label remaining vertices with -1
 	}
 	t->face_tripod_assign = malloc((b->f)*sizeof(int));
 	t->face_tripod_assign[0] = 0; //this is a special case, since 0 is the outer face
-	for (int k = 1; k < (b->f); k++){
-		t->face_tripod_assign[k] = -1;
+	for (int i = 1; i < (b->f); i++){
+		t->face_tripod_assign[i] = -1;
 	}
 	t->tripod_assign_order = malloc(((b->f)+2)*sizeof(int));
 	//label the first three entries as the three exterior tripods that constitute our base case
 	t->tripod_assign_order[0] = (b->f);
 	t->tripod_assign_order[1] = (b->f)+1;
 	t->tripod_assign_order[2] = (b->f)+2;
-	for (int k = 3; k < ((b->f)+2); k++){
-		t->tripod_assign_order[k] = -1;
+	for (int i = 3; i < ((b->f)+2); i++){
+		t->tripod_assign_order[i] = -1;
 	}
 	t->tripod_assign_order_index = 3;
+
+	t->v_x = malloc(3*sizeof(int));
+	t->v_x_next = malloc(3*sizeof(int));
+	t->v_x_op = malloc(3*sizeof(int));
+	t->v_x_mirror = malloc(3*sizeof(int));
 
 	printf("--------------------------------------------------------------------------------------------------------------------------------\n");
 	printf("--------------------------------------------------------------------------------------------------------------------------------\n");
 	printf("initialization complete\n");
 
 	printf("bfs tree = "); //testing
-	for (int k = 0; k < b->v; k++){
-		printf("%d ", b->bt[k]);
+	for (int i = 0; i < b->v; i++){
+		printf("%d ", b->bt[i]);
 	}
 	printf("\n");
 
@@ -122,8 +127,8 @@ int* trichromatic_tripod(struct bfs_struct* b, struct rmq_struct* r, struct trip
 	}
 
 	printf("\n%d is one of our sperner triangles\nvertex_tripod_assign = ", sp); //sperner triangles are correctly identified
-	for (int k = 0; k < (b->v); k++){
-		printf("%d ", t->vertex_tripod_assign[k]);
+	for (int i = 0; i < (b->v); i++){
+		printf("%d ", t->vertex_tripod_assign[i]);
 	}
 	printf("\nface_tripod_assign = ");
 	for (int i = 0; i < b->f; i++){
@@ -135,8 +140,8 @@ int* trichromatic_tripod(struct bfs_struct* b, struct rmq_struct* r, struct trip
 		if (t->face_tripod_assign[f1] == f1 || t->face_tripod_assign[f2] == f2 || t->face_tripod_assign[f3] == f3){
 			printf("one of our input triangles is a sperner triangle. exiting.\n");
 			printf("tripod_assign_order = [ ");
-			for (int k = 0; k < t->tripod_assign_order_index; k++){
-				printf("%d ", (t->tripod_assign_order)[k]);
+			for (int i = 0; i < t->tripod_assign_order_index; i++){
+				printf("%d ", (t->tripod_assign_order)[i]);
 			}
 			printf("]\n");
 			exit(0);
@@ -165,42 +170,22 @@ void trichromatic_orient_subproblems(struct bfs_struct* b, struct tripod_decompo
 	(t->v_b_next == -1) ? (leg_colour_b = t->vertex_tripod_assign[t->v_b]) : (leg_colour_b = t->vertex_tripod_assign[t->v_b_next]);
 	(t->v_c_next == -1) ? (leg_colour_c = t->vertex_tripod_assign[t->v_c]) : (leg_colour_c = t->vertex_tripod_assign[t->v_c_next]);
 
-	trichromatic_orient_subproblems_pt2(b, t, sp, f1, f2, f3, leg_colour_a, leg_colour_b, leg_colour_c);
-}
+	int* f = malloc(3*sizeof(int)); //memory leak
+	f[0] = f1;
+	f[1] = f2;
+	f[2] = f3;
 
-void trichromatic_orient_subproblems_pt2(struct bfs_struct* b, struct tripod_decomposition_struct* t, int sp, int f1, int f2, int f3, int leg_colour_a, int leg_colour_b, int leg_colour_c){
-	int f;
-	int next_f;
-	int next_next_f;
+	int k = 0;
+	while (f[k] == sp) k++;
+	//f[k], f[(k+1)%3], f[(k+2)%3]
 
-	if (f1 != sp){
-		f = f1;
-		printf("f = f1 = %d\n", f);
-		next_f = f2;
-		next_next_f = f3;
-	}
-	else if (f2 != sp){
-		f = f2;
-		printf("f = f2 = %d\n", f);
-		next_f = f3;
-		next_next_f = f1;
-	}
-	else {
-		f = f3;
-		printf("f = f3 = %d\n", f);
-		next_f = f1;
-		next_next_f = f2;
-	}
+	printf("f = f%d = %d\n", k+1, f[k]); //temporary, so that diff will show no difference between the original code and the new modular arithmetic code
 
-	trichromatic_orient_subproblems_pt3(b, t, sp, f1, f2, f3, leg_colour_a, leg_colour_b, leg_colour_c, f, next_f, next_next_f);
-}
-
-void trichromatic_orient_subproblems_pt3(struct bfs_struct* b, struct tripod_decomposition_struct* t, int sp, int f1, int f2, int f3, int leg_colour_a, int leg_colour_b, int leg_colour_c, int f, int next_f, int next_next_f){
 	int double_match = 0;
 	for (int i = 0; i < 3; i++){ //look at all three vertices of our f triangle
-		if (t->vertex_tripod_assign[b->sim[f][i]] == leg_colour_a){
+		if (t->vertex_tripod_assign[b->sim[f[k]][i]] == leg_colour_a){
 			for (int j = 0; j < 3; j++){
-				if (t->vertex_tripod_assign[b->sim[f][j]] == leg_colour_b){
+				if (t->vertex_tripod_assign[b->sim[f[k]][j]] == leg_colour_b){
 					double_match = 1;
 				}
 			}
@@ -209,16 +194,20 @@ void trichromatic_orient_subproblems_pt3(struct bfs_struct* b, struct tripod_dec
 	if (double_match){
 		printf("ORIENTATION 1\n");
 
-		t->v_a_op = f;
-		t->v_b_op = next_f;
-		t->v_c_op = next_next_f;
+		t->v_a_op = f[k];
+		t->v_b_op = f[(k+1)%3];
+		t->v_c_op = f[(k+2)%3];
+
+		t->v_x_op[0] = f[k];
+		t->v_x_op[1] = f[(k+1)%3];
+		t->v_x_op[2] = f[(k+2)%3];
 	}
 	else { //no double match. reset values and try with leg_colour_b and leg_colour_c
 		double_match = 0;
 		for (int i = 0; i < 3; i++){ //look at all three vertices of our f triangle
-			if (t->vertex_tripod_assign[b->sim[f][i]] == leg_colour_b){
+			if (t->vertex_tripod_assign[b->sim[f[k]][i]] == leg_colour_b){
 				for (int j = 0; j < 3; j++){
-					if (t->vertex_tripod_assign[b->sim[f][j]] == leg_colour_c){
+					if (t->vertex_tripod_assign[b->sim[f[k]][j]] == leg_colour_c){
 						double_match = 1;
 					}
 				}
@@ -227,143 +216,71 @@ void trichromatic_orient_subproblems_pt3(struct bfs_struct* b, struct tripod_dec
 		if (double_match){
 			printf("ORIENTATION 2\n");
 
-			t->v_a_op = next_next_f;
-			t->v_b_op = f;
-			t->v_c_op = next_f;
+			t->v_a_op = f[(k+2)%3];
+			t->v_b_op = f[k];
+			t->v_c_op = f[(k+1)%3];
+
+			t->v_x_op[0] = f[(k+2)%3];
+			t->v_x_op[1] = f[k];
+			t->v_x_op[2] = f[(k+1)%3];
 		}
 		else { //no double match. f must match with leg_colour_c and leg_colour_a.
 			printf("ORIENTATION 3\n");
 
-			t->v_a_op = next_f;
-			t->v_b_op = next_next_f;
-			t->v_c_op = f;
+			t->v_a_op = f[(k+1)%3];
+			t->v_b_op = f[(k+2)%3];
+			t->v_c_op = f[k];
+
+			t->v_x_op[0] = f[(k+1)%3];
+			t->v_x_op[1] = f[(k+2)%3];
+			t->v_x_op[2] = f[k];
 		}
 	}
 }
 
 void trichromatic_decompose(struct bfs_struct* b, struct rmq_struct* r, struct tripod_decomposition_struct* t, int sp, int f1, int f2, int f3){
 	//definitions
-	int v_a = t->v_a;
-	int v_a_next = t->v_a_next;
-	int v_a_l = t->v_a_l;
-	int v_a_r = t-> v_a_r;
-	int v_a_op = t->v_a_op;
-	int v_a_mirror = t->v_a_mirror;
-	int y_a = t->y_a;
-	int v_b = t->v_b;
-	int v_b_next = t->v_b_next;
-	int v_b_l = t->v_b_l;
-	int v_b_r = t->v_b_r;
-	int v_b_op = t->v_b_op;
-	int v_b_mirror = t->v_b_mirror;
-	int y_b = t->y_b;
-	int v_c = t->v_c;
-	int v_c_next = t->v_c_next;
-	int v_c_l = t->v_c_l;
-	int v_c_r = t->v_c_r;
-	int v_c_op = t->v_c_op;
-	int v_c_mirror = t->v_c_mirror;
-	int y_c = t->y_c;
-
-	//subproblem a
-	if (t->vertex_tripod_assign[v_a] == sp && t->vertex_tripod_assign[v_b] == sp){ //leg a is non-empty && leg b is non-empty
-		v_a_l = b->il[v_a][b->pin[v_a]];
-		(b->pin[v_b] == 0) ? (y_b = (b->n[v_b])-1) : (y_b = b->pin[v_b]-1);
-		v_b_r = b->il[v_b][y_b];
-		printf("subproblem a for sp %d is trichromatic\n", sp);
-		printf("subproblem a for sp %d will be on faces %d, %d, %d\n", sp, v_a_op, v_b_r, v_a_l);
-		trichromatic_tripod(b, r, t, v_a_op, v_b_r, v_a_l);
-	}
-	else if (t->vertex_tripod_assign[v_a] == sp && t->vertex_tripod_assign[v_b] != sp){ //leg a is non-empty && leg b is empty
-		v_a_l = b->il[v_a][b->pin[v_a]];
-		printf("subproblem a for sp %d is trichromatic\n", sp);
-		printf("subproblem a for sp %d will be on faces %d, %d, %d\n", sp, v_a_op, v_a_mirror, v_a_l);
-		trichromatic_tripod(b, r, t, v_a_op, v_a_mirror, v_a_l);
-	}
-	else if (t->vertex_tripod_assign[v_a] != sp && t->vertex_tripod_assign[v_b] == sp){ //leg a is empty && leg b is non-empty
-		(b->pin[v_b] == 0) ? (y_b = (b->n[v_b])-1) : (y_b = b->pin[v_b]-1);
-		v_b_r = b->il[v_b][y_b];
-		printf("subproblem a for sp %d is trichromatic\n", sp);
-		printf("subproblem a for sp %d will be on faces %d, %d, %d\n", sp, v_a_op, v_b_r, v_a_mirror);
-		trichromatic_tripod(b, r, t, v_a_op, v_b_r, v_a_mirror);
-	}
-	else if (t->vertex_tripod_assign[v_a] != sp && t->vertex_tripod_assign[v_b] != sp){ //leg a is empty && leg b is empty
-		if (t->face_tripod_assign[v_a_op] > -1){
-			printf("no subproblem a for sp %d\n", sp);
-			v_a_mirror = -1; //set v_a_mirror to negative value to later check whether it is in our subproblem boundary
-		}
-		else {
-			printf("subproblem a for sp %d is bichromatic\n", sp);
-			printf("subproblem a for sp %d will be on faces %d, %d\n", sp, v_a_op, v_a_mirror);
-			bichromatic_tripod( b, r, t, v_a_op, v_a_mirror);
-		}
+	int* v_x = malloc(3*sizeof(int)); //mem leak
+	int* v_x_next = malloc(3*sizeof(int)); //mem leak
+	int* v_x_op = malloc(3*sizeof(int)); //mem leak
+	int* v_x_mirror = malloc(3*sizeof(int)); //mem leak
+	int* v_x_l = malloc(3*sizeof(int)); //mem leak
+	int* v_x_r = malloc(3*sizeof(int)); //mem leak
+	for (int i = 0; i < 3; i++){
+		v_x[i] = t->v_x[i];
+		v_x_next[i] = t->v_x_next[i];
+		v_x_op[i] = t->v_x_op[i];
+		v_x_mirror[i] = t->v_x_mirror[i];
+		v_x_l[i] = b->il[v_x[i]][b->pin[v_x[i]]];
+		(b->pin[v_x[i]] == 0) ? (v_x_r[i] = b->il[v_x[i]][(b->n[v_x[i]])-1]) : (v_x_r[i] = b->il[v_x[i]][b->pin[v_x[i]]-1]);
 	}
 
-	//subproblem b
-	if (t->vertex_tripod_assign[v_b] == sp && t->vertex_tripod_assign[v_c] == sp){ //leg b is non-empty && leg c is non-empty
-		v_b_l = b->il[v_b][b->pin[v_b]];
-		(b->pin[v_c] == 0) ? (y_c = (b->n[v_c])-1) : (y_c = b->pin[v_c]-1);
-		v_c_r = b->il[v_c][y_c];
-		printf("subproblem b for sp %d is trichromatic\n", sp);
-		printf("subproblem b for sp %d will be on faces %d, %d, %d\n", sp, v_b_op, v_c_r, v_b_l);
-		trichromatic_tripod(b, r, t, v_b_op, v_c_r, v_b_l);
-	}
-	else if (t->vertex_tripod_assign[v_b] == sp && t->vertex_tripod_assign[v_c] != sp){ //leg b is non-empty && leg c is empty
-		v_b_l = b->il[v_b][b->pin[v_b]];
-		printf("subproblem b for sp %d is trichromatic\n", sp);
-		printf("subproblem b for sp %d will be on faces %d, %d, %d\n", sp, v_b_op, v_b_mirror, v_b_l);
-		trichromatic_tripod(b, r, t, v_b_op, v_b_mirror, v_b_l);
-	}
-	else if (t->vertex_tripod_assign[v_b] != sp && t->vertex_tripod_assign[v_c] == sp){ //leg b is empty && leg c is non-empty
-		(b->pin[v_c] == 0) ? (y_c = (b->n[v_c])-1) : (y_c = b->pin[v_c]-1);
-		v_c_r = b->il[v_c][y_c];
-		printf("subproblem b for sp %d is trichromatic\n", sp);
-		printf("subproblem b for sp %d will be on faces %d, %d, %d\n", sp, v_b_op, v_c_r, v_b_mirror);
-		trichromatic_tripod(b, r, t, v_b_op, v_c_r, v_b_mirror);
-	}
-	else if (t->vertex_tripod_assign[v_b] != sp && t->vertex_tripod_assign[v_c] != sp){ //leg b is empty && leg c is empty
-		if (t->face_tripod_assign[v_b_op] > -1){
-			printf("no subproblem b for sp %d\n", sp);
-			v_b_mirror = -1; //set v_b_mirror to negative value to later check whether it is in our subproblem boundary
+	for (int i = 0; i < 3; i++){
+		if (t->vertex_tripod_assign[v_x[i]] == sp && t->vertex_tripod_assign[v_x[(i+1)%3]] == sp){ //leg i is non-empty && leg (i+1)%3 is non-empty
+			printf("subproblem x for sp %d is trichromatic\n", sp);
+			printf("subproblem x for sp %d will be on faces %d, %d, %d\n", sp, v_x_op[i], v_x_r[(i+1)%3], v_x_l[i]);
+			trichromatic_tripod(b, r, t, v_x_op[i], v_x_r[(i+1)%3], v_x_l[i]);
 		}
-		else {
-			printf("subproblem b for sp %d is bichromatic\n", sp);
-			printf("subproblem b for sp %d will be on faces %d, %d\n", sp, v_b_op, v_b_mirror);
-			bichromatic_tripod( b, r, t, v_b_op, v_b_mirror);
+		else if (t->vertex_tripod_assign[v_x[i]] == sp && t->vertex_tripod_assign[v_x[(i+1)%3]] != sp){ //leg i is non-empty && leg (i+1)%3 is empty
+			printf("subproblem x for sp %d is trichromatic\n", sp);
+			printf("subproblem x for sp %d will be on faces %d, %d, %d\n", sp, v_x_op[i], v_x_mirror[i], v_x_l[i]);
+			trichromatic_tripod(b, r, t, v_x_op[i], v_x_mirror[i], v_x_l[i]);
 		}
-	}
-
-	//subproblem c
-	if (t->vertex_tripod_assign[v_c] == sp && t->vertex_tripod_assign[v_a] == sp){ //leg c is non-empty && leg a is non-empty
-		v_c_l = b->il[v_c][b->pin[v_c]];
-		(b->pin[v_a] == 0) ? (y_a = (b->n[v_a])-1) : (y_a = b->pin[v_a]-1);
-		v_a_r = b->il[v_a][y_a];
-		printf("subproblem c for sp %d is trichromatic\n", sp);
-		printf("subproblem c for sp %d will be on faces %d, %d, %d\n", sp, v_c_op, v_a_r, v_c_l);
-		trichromatic_tripod(b, r, t, v_c_op, v_a_r, v_c_l);
-	}
-	else if (t->vertex_tripod_assign[v_c] == sp && t->vertex_tripod_assign[v_a] != sp){ //leg c is non-empty && leg a is empty
-		v_c_l = b->il[v_c][b->pin[v_c]];
-		printf("subproblem c for sp %d is trichromatic\n", sp);
-		printf("subproblem c for sp %d will be on faces %d, %d, %d\n", sp, v_c_op, v_c_mirror, v_c_l);
-		trichromatic_tripod(b, r, t, v_c_op, v_c_mirror, v_c_l);
-	}
-	else if (t->vertex_tripod_assign[v_c] != sp && t->vertex_tripod_assign[v_a] == sp){ //leg c is empty && leg a is non-empty
-		(b->pin[v_a] == 0) ? (y_a = (b->n[v_a])-1) : (y_a = b->pin[v_a]-1);
-		v_a_r = b->il[v_a][y_a];
-		printf("subproblem c for sp %d is trichromatic\n", sp);
-		printf("subproblem c for sp %d will be on faces %d, %d, %d\n", sp, v_c_op, v_a_r, v_c_mirror);
-		trichromatic_tripod(b, r, t, v_c_op, v_a_r, v_c_mirror);
-	}
-	else if (t->vertex_tripod_assign[v_c] != sp && t->vertex_tripod_assign[v_a] != sp){ //leg c is empty && leg a is empty
-		if (t->face_tripod_assign[v_c_op] > -1){
-			printf("no subproblem c for sp %d\n", sp);
-			v_c_mirror = -1; //set v_c_mirror to negative value to later check whether it is in our subproblem boundary
+		else if (t->vertex_tripod_assign[v_x[i]] != sp && t->vertex_tripod_assign[v_x[(i+1)%3]] == sp){ //leg i is empty && leg (i+1)%3 is non-empty
+			printf("subproblem x for sp %d is trichromatic\n", sp);
+			printf("subproblem x for sp %d will be on faces %d, %d, %d\n", sp, v_x_op[i], v_x_r[(i+1)%3], v_x_mirror[i]);
+			trichromatic_tripod(b, r, t, v_x_op[i], v_x_r[(i+1)%3], v_x_mirror[i]);
 		}
-		else {
-			printf("subproblem c for sp %d is bichromatic\n", sp);
-			printf("subproblem c for sp %d will be on faces %d, %d\n", sp, v_c_op, v_c_mirror);
-			bichromatic_tripod( b, r, t, v_c_op, v_c_mirror);
+		else if (t->vertex_tripod_assign[v_x[i]] != sp && t->vertex_tripod_assign[v_x[(i+1)%3]] != sp){ //leg i is empty && leg (i+1)%3 is empty
+			if (t->face_tripod_assign[v_x_op[i]] > -1){
+				printf("no subproblem x for sp %d\n", sp);
+				v_x_mirror[i] = -1; //set v_x_mirror[i] to negative value to later check whether it is in our subproblem boundary
+			}
+			else {
+				printf("subproblem x for sp %d is bichromatic\n", sp);
+				printf("subproblem x for sp %d will be on faces %d, %d\n", sp, v_x_op[i], v_x_mirror[i]);
+				bichromatic_tripod( b, r, t, v_x_op[i], v_x_mirror[i]);
+			}
 		}
 	}
 }
@@ -390,8 +307,8 @@ int* bichromatic_tripod(struct bfs_struct* b, struct rmq_struct* r, struct tripo
 	}
 
 	printf("\n%d is one of our sperner triangles\nvertex_tripod_assign = ", sp); //sperner triangles are correctly identified
-	for (int k = 0; k < (b->v); k++){
-		printf("%d ", t->vertex_tripod_assign[k]);
+	for (int i = 0; i < (b->v); i++){
+		printf("%d ", t->vertex_tripod_assign[i]);
 	}
 	printf("\nface_tripod_assign = ");
 	for (int i = 0; i < b->f; i++){
@@ -403,8 +320,8 @@ int* bichromatic_tripod(struct bfs_struct* b, struct rmq_struct* r, struct tripo
 		if (t->face_tripod_assign[f1] == f1 || t->face_tripod_assign[f2] == f2){
 			printf("one of our input triangles is a sperner triangle. exiting.\n");
 			printf("tripod_assign_order = [ ");
-			for (int k = 0; k < t->tripod_assign_order_index; k++){
-				printf("%d ", (t->tripod_assign_order)[k]);
+			for (int i = 0; i < t->tripod_assign_order_index; i++){
+				printf("%d ", (t->tripod_assign_order)[i]);
 			}
 			printf("]\n");
 			exit(0);
@@ -435,25 +352,31 @@ void bichromatic_decompose(struct bfs_struct* b, struct rmq_struct* r, struct tr
 	//definitions
 	int v_a = t->v_a;
 	int v_a_next = t->v_a_next;
-	int v_a_l = t->v_a_l;
-	int v_a_r = t-> v_a_r;
-	int v_a_op = t->v_a_op;
 	int v_a_mirror = t->v_a_mirror;
-	int y_a = t->y_a;
 	int v_b = t->v_b;
 	int v_b_next = t->v_b_next;
-	int v_b_l = t->v_b_l;
-	int v_b_r = t->v_b_r;
-	int v_b_op = t->v_b_op;
 	int v_b_mirror = t->v_b_mirror;
-	int y_b = t->y_b;
 	int v_c = t->v_c;
 	int v_c_next = t->v_c_next;
-	int v_c_l = t->v_c_l;
-	int v_c_r = t->v_c_r;
-	int v_c_op = t->v_c_op;
 	int v_c_mirror = t->v_c_mirror;
-	int y_c = t->y_c;
+
+	int* v_x = malloc(3*sizeof(int)); //mem leak
+	int* v_x_next = malloc(3*sizeof(int)); //mem leak
+	int* v_x_op = malloc(3*sizeof(int)); //mem leak
+	int* v_x_mirror = malloc(3*sizeof(int)); //mem leak
+	for (int i = 0; i < 3; i++){
+		v_x[i] = t->v_x[i];
+		v_x_next[i] = t->v_x_next[i];
+		v_x_mirror[i] = t->v_x_mirror[i];
+	}
+
+	int v_a_l = b->il[v_a][b->pin[v_a]];
+	int v_b_l = b->il[v_b][b->pin[v_b]];
+	int v_c_l = b->il[v_c][b->pin[v_c]];
+	int v_a_r; int v_b_r; int v_c_r;
+	(b->pin[v_a] == 0) ? (v_a_r = b->il[v_a][(b->n[v_a])-1]) : (v_a_r = b->il[v_a][b->pin[v_a]-1]);
+	(b->pin[v_b] == 0) ? (v_b_r = b->il[v_b][(b->n[v_b])-1]) : (v_b_r = b->il[v_b][b->pin[v_b]-1]);
+	(b->pin[v_c] == 0) ? (v_c_r = b->il[v_c][(b->n[v_c])-1]) : (v_c_r = b->il[v_c][b->pin[v_c]-1]);
 
 	if (t->vertex_tripod_assign[v_a] == sp || t->vertex_tripod_assign[v_b] == sp || t->vertex_tripod_assign[v_c] == sp){ //if one of {leg a, leg b, leg c} is non-empty
 		//here we either have case 5.1 or 5.2
@@ -462,9 +385,6 @@ void bichromatic_decompose(struct bfs_struct* b, struct rmq_struct* r, struct tr
 		if (t->vertex_tripod_assign[v_a] == sp){ //v_a is non-empty
 			if (v_a_next != v_b && v_a_next != v_c){ //if the path up the bfs tree from v_a does NOT lead to v_b or v_c
 				//here we have case 5.1
-				(b->pin[v_a] == 0) ? (y_a = (b->n[v_a])-1) : (y_a = b->pin[v_a]-1);
-				v_a_r = b->il[v_a][y_a];
-				v_a_l = b->il[v_a][b->pin[v_a]];
 				printf("we have two subproblems for sp %d: trichromatic + bichromatic\n", sp);
 				if (t->vertex_tripod_assign[v_a_next] == t->vertex_tripod_assign[v_c]){ //if v_a_next is the same colour as v_c
 					printf("bichromatic subproblem for sp %d will be on faces %d, %d\n", sp, v_a_r, v_c_mirror);
@@ -489,9 +409,6 @@ void bichromatic_decompose(struct bfs_struct* b, struct rmq_struct* r, struct tr
 		else if (t->vertex_tripod_assign[v_b] == sp){ //v_b is non-empty
 			if (v_b_next != v_a && v_b_next != v_c){ //if the path up the bfs tree from v_b does NOT lead to v_a or v_c
 				//here we have case 5.1
-				(b->pin[v_b] == 0) ? (y_b = (b->n[v_b])-1) : (y_b = b->pin[v_b]-1);
-				v_b_r = b->il[v_b][y_b];
-				v_b_l = b->il[v_b][b->pin[v_b]];
 				printf("we have two subproblems for sp %d: trichromatic + bichromatic\n", sp);
 				if (t->vertex_tripod_assign[v_b_next] == t->vertex_tripod_assign[v_a]){ //if v_b_next is the same colour as v_a
 					printf("bichromatic subproblem for sp %d will be on faces %d, %d\n", sp, v_b_r, v_a_mirror);
@@ -516,9 +433,6 @@ void bichromatic_decompose(struct bfs_struct* b, struct rmq_struct* r, struct tr
 		else { //v_c is non-empty
 			if (v_c_next != v_a && v_c_next != v_b){ //if the path up the bfs tree from v_c does NOT lead to v_a or v_b
 				//here we have case 5.1
-				(b->pin[v_c] == 0) ? (y_c = (b->n[v_c])-1) : (y_c = b->pin[v_c]-1);
-				v_c_r = b->il[v_c][y_c];
-				v_c_l = b->il[v_c][b->pin[v_c]];
 				printf("we have two subproblems for sp %d: trichromatic + bichromatic\n", sp);
 				if (t->vertex_tripod_assign[v_c_next] == t->vertex_tripod_assign[v_b]){ //if v_c_next is the same colour as v_b
 					printf("bichromatic subproblem for sp %d will be on faces %d, %d\n", sp, v_c_r, v_b_mirror);
@@ -747,8 +661,8 @@ int* monochromatic_tripod(struct bfs_struct* b, struct rmq_struct* r, struct tri
 	}
 
 	printf("\n%d is one of our sperner triangles\nvertex_tripod_assign = ", sp); //sperner triangles are correctly identified
-	for (int k = 0; k < (b->v); k++){
-		printf("%d ", t->vertex_tripod_assign[k]);
+	for (int i = 0; i < (b->v); i++){
+		printf("%d ", t->vertex_tripod_assign[i]);
 	}
 	printf("\nface_tripod_assign = ");
 	for (int i = 0; i < b->f; i++){
@@ -760,8 +674,8 @@ int* monochromatic_tripod(struct bfs_struct* b, struct rmq_struct* r, struct tri
 		if (t->face_tripod_assign[sp] == sp){
 			printf("sperner triangle already found. exiting.\n");
 			printf("tripod_assign_order = [ ");
-			for (int k = 0; k < t->tripod_assign_order_index; k++){
-				printf("%d ", (t->tripod_assign_order)[k]);
+			for (int i = 0; i < t->tripod_assign_order_index; i++){
+				printf("%d ", (t->tripod_assign_order)[i]);
 			}
 			printf("]\n");
 			exit(0);
@@ -789,25 +703,31 @@ void monochromatic_decompose(struct bfs_struct* b, struct rmq_struct* r, struct 
 	//definitions
 	int v_a = t->v_a;
 	int v_a_next = t->v_a_next;
-	int v_a_l = t->v_a_l;
-	int v_a_r = t-> v_a_r;
-	int v_a_op = t->v_a_op;
 	int v_a_mirror = t->v_a_mirror;
-	int y_a = t->y_a;
 	int v_b = t->v_b;
 	int v_b_next = t->v_b_next;
-	int v_b_l = t->v_b_l;
-	int v_b_r = t->v_b_r;
-	int v_b_op = t->v_b_op;
 	int v_b_mirror = t->v_b_mirror;
-	int y_b = t->y_b;
 	int v_c = t->v_c;
 	int v_c_next = t->v_c_next;
-	int v_c_l = t->v_c_l;
-	int v_c_r = t->v_c_r;
-	int v_c_op = t->v_c_op;
 	int v_c_mirror = t->v_c_mirror;
-	int y_c = t->y_c;
+
+	int* v_x = malloc(3*sizeof(int)); //mem leak
+	int* v_x_next = malloc(3*sizeof(int)); //mem leak
+	int* v_x_op = malloc(3*sizeof(int)); //mem leak
+	int* v_x_mirror = malloc(3*sizeof(int)); //mem leak
+	for (int i = 0; i < 3; i++){
+		v_x[i] = t->v_x[i];
+		v_x_next[i] = t->v_x_next[i];
+		v_x_mirror[i] = t->v_x_mirror[i];
+	}
+
+	int v_a_l = b->il[v_a][b->pin[v_a]];
+	int v_b_l = b->il[v_b][b->pin[v_b]];
+	int v_c_l = b->il[v_c][b->pin[v_c]];
+	int v_a_r; int v_b_r; int v_c_r;
+	(b->pin[v_a] == 0) ? (v_a_r = b->il[v_a][(b->n[v_a])-1]) : (v_a_r = b->il[v_a][b->pin[v_a]-1]);
+	(b->pin[v_b] == 0) ? (v_b_r = b->il[v_b][(b->n[v_b])-1]) : (v_b_r = b->il[v_b][b->pin[v_b]-1]);
+	(b->pin[v_c] == 0) ? (v_c_r = b->il[v_c][(b->n[v_c])-1]) : (v_c_r = b->il[v_c][b->pin[v_c]-1]);
 
 	//all subproblems
 	if (t->vertex_tripod_assign[v_a] == sp || t->vertex_tripod_assign[v_b] == sp || t->vertex_tripod_assign[v_c] == sp){ //if one of {leg a, leg b, leg c} is non-empty
@@ -817,9 +737,6 @@ void monochromatic_decompose(struct bfs_struct* b, struct rmq_struct* r, struct 
 		if (t->vertex_tripod_assign[v_a] == sp){ //v_a is non-empty
 			if (v_a_next != v_b && v_a_next != v_c){ //if the path up the bfs tree from v_a does NOT lead to v_b or v_c
 				//here we have case 6.1
-				(b->pin[v_a] == 0) ? (y_a = (b->n[v_a])-1) : (y_a = b->pin[v_a]-1);
-				v_a_r = b->il[v_a][y_a];
-				v_a_l = b->il[v_a][b->pin[v_a]];
 				printf("we have two subproblems for sp %d: bichromatic + bichromatic\n", sp);
 				printf("first bichromatic subproblem for sp %d will be on faces %d, %d\n", sp, v_a_r, v_c_mirror);
 				bichromatic_tripod( b, r, t, v_a_r, v_c_mirror);
@@ -837,9 +754,6 @@ void monochromatic_decompose(struct bfs_struct* b, struct rmq_struct* r, struct 
 		else if (t->vertex_tripod_assign[v_b] == sp){ //v_b is non-empty
 			if (v_b_next != v_a && v_b_next != v_c){ //if the path up the bfs tree from v_b does NOT lead to v_a or v_c
 				//here we have case 6.1
-				(b->pin[v_b] == 0) ? (y_b = (b->n[v_b])-1) : (y_b = b->pin[v_b]-1);
-				v_b_r = b->il[v_b][y_b];
-				v_b_l = b->il[v_b][b->pin[v_b]];
 				printf("we have two subproblems for sp %d: bichromatic + bichromatic\n", sp);
 				printf("first bichromatic subproblem for sp %d will be on faces %d, %d\n", sp, v_b_r, v_a_mirror);
 				bichromatic_tripod( b, r, t, v_b_r, v_a_mirror);
@@ -856,9 +770,6 @@ void monochromatic_decompose(struct bfs_struct* b, struct rmq_struct* r, struct 
 		else { //v_c is non-empty
 			if (v_c_next != v_a && v_c_next != v_b){ //if the path up the bfs tree from v_c does NOT lead to v_a or v_b
 				//here we have case 6.1
-				(b->pin[v_c] == 0) ? (y_c = (b->n[v_c])-1) : (y_c = b->pin[v_c]-1);
-				v_c_r = b->il[v_c][y_c];
-				v_c_l = b->il[v_c][b->pin[v_c]];
 				printf("we have two subproblems for sp %d: bichromatic + bichromatic\n", sp);
 				printf("first bichromatic subproblem for sp %d will be on faces %d, %d\n", sp, v_c_r, v_b_mirror);
 				bichromatic_tripod( b, r, t, v_c_r, v_b_mirror);
@@ -982,39 +893,71 @@ void monochromatic_decompose(struct bfs_struct* b, struct rmq_struct* r, struct 
 
 void store_tripod(struct bfs_struct* b, struct tripod_decomposition_struct* t, int sp){
 	int u;
+
+	/*
+	for (int i = 0; i < 3; i++){
+		u = b->sim[sp][i];
+		t->v_x[i] = u;
+		t->v_x_next[i] = -1;
+		while (t->vertex_tripod_assign[u] == -1){
+			t->vertex_tripod_assign[u] = sp;
+			t->v_x[i] = u;
+			u = b->bt[u];
+			t->v_x_next[i] = u;
+		}
+		t->v_x_mirror[i] = b->tri[sp][i];
+	}
+	*///while there exists a portion of code using non modular arithmetic, this commented block has to remain commented
+	//and the semi-duplicated code below has to remain as is
+
 	u = b->sim[sp][0];
 	t->v_a = u;
+	t->v_x[0] = u;
 	t->v_a_next = -1;
+	t->v_x_next[0] = -1;
 	while (t->vertex_tripod_assign[u] == -1){
 		t->vertex_tripod_assign[u] = sp;
 		t->v_a = u;
+		t->v_x[0] = u;
 		u = b->bt[u];
 		t->v_a_next = u;
+		t->v_x_next[0] = u;
 	}
 
 	u = b->sim[sp][1];
 	t->v_b = u;
+	t->v_x[1] = u;
 	t->v_b_next = -1;
+	t->v_x_next[1] = -1;
 	while (t->vertex_tripod_assign[u] == -1){
 		t->vertex_tripod_assign[u] = sp;
 		t->v_b = u;
+		t->v_x[1] = u;
 		u = b->bt[u];
 		t->v_b_next = u;
+		t->v_x_next[1] = u;
 	}
 
 	u = b->sim[sp][2];
 	t->v_c = u;
+	t->v_x[2] = u;
 	t->v_c_next = -1;
+	t->v_x_next[2] = -1;
 	while (t->vertex_tripod_assign[u] == -1){
 		t->vertex_tripod_assign[u] = sp;
 		t->v_c = u;
+		t->v_x[2] = u;
 		u = b->bt[u];
 		t->v_c_next = u;
+		t->v_x_next[2] = u;
 	}
 
 	t->v_a_mirror = b->tri[sp][0];
 	t->v_b_mirror = b->tri[sp][1];
 	t->v_c_mirror = b->tri[sp][2];
+	t->v_x_mirror[0] = b->tri[sp][0];
+	t->v_x_mirror[1] = b->tri[sp][1];
+	t->v_x_mirror[2] = b->tri[sp][2];
 }
 
 void tprint(struct tripod_decomposition_struct* t){
@@ -1038,6 +981,10 @@ void tripod_free(struct tripod_decomposition_struct* t){
 	free(t->vertex_tripod_assign);
 	free(t->face_tripod_assign);
 	free(t->tripod_assign_order);
+	free(t->v_x);
+	free(t->v_x_next);
+	free(t->v_x_op);
+	free(t->v_x_mirror);
 }
 
 int three_tree_test(struct bfs_struct* b, struct tripod_decomposition_struct* t, int sp){
@@ -1056,9 +1003,9 @@ int three_tree_test(struct bfs_struct* b, struct tripod_decomposition_struct* t,
 	(t->v_c_next == -1) ? (colour_c = t->vertex_tripod_assign[t->v_c]) : (colour_c = t->vertex_tripod_assign[t->v_c_next]);
 
 	int vertex_index = -1;
-	for (int m = 0; m < t->tripod_assign_order_index; m++){ //for each previously found tripod
-		if (colour_a == t->tripod_assign_order[m]){
-			vertex_index = m;
+	for (int i = 0; i < t->tripod_assign_order_index; i++){ //for each previously found tripod
+		if (colour_a == t->tripod_assign_order[i]){
+			vertex_index = i;
 		}
 	}
 	if (vertex_index == -1){ //this means the parent tripod doesn't exist
@@ -1069,9 +1016,9 @@ int three_tree_test(struct bfs_struct* b, struct tripod_decomposition_struct* t,
 	}
 
 	vertex_index = -1;
-	for (int m = 0; m < t->tripod_assign_order_index; m++){ //for each previously found tripod
-		if (colour_b == t->tripod_assign_order[m]){
-			vertex_index = m;
+	for (int i = 0; i < t->tripod_assign_order_index; i++){ //for each previously found tripod
+		if (colour_b == t->tripod_assign_order[i]){
+			vertex_index = i;
 		}
 	}
 	if (vertex_index == -1){ //this means the parent tripod doesn't exist
@@ -1082,9 +1029,9 @@ int three_tree_test(struct bfs_struct* b, struct tripod_decomposition_struct* t,
 	}
 
 	vertex_index = -1;
-	for (int m = 0; m < t->tripod_assign_order_index; m++){ //for each previously found tripod
-		if (colour_c == t->tripod_assign_order[m]){
-			vertex_index = m;
+	for (int i = 0; i < t->tripod_assign_order_index; i++){ //for each previously found tripod
+		if (colour_c == t->tripod_assign_order[i]){
+			vertex_index = i;
 		}
 	}
 	if (vertex_index == -1){ //this means the parent tripod doesn't exist
