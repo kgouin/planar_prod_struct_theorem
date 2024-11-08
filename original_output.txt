@@ -253,7 +253,6 @@ v_a_op = 14
 v_b_op = 8
 v_c_op = 8
 we have one subproblem for sp 14: bichromatic
-here 3
 bichromatic subproblem for sp 14 will be on faces 9, 9
 
 9 is one of our sperner triangles
@@ -637,7 +636,6 @@ v_a_op = 22
 v_b_op = 21
 v_c_op = 22
 we have one subproblem for sp 6: bichromatic
-here 1
 bichromatic subproblem for sp 6 will be on faces 3, 18
 
 3 is one of our sperner triangles

@@ -178,6 +178,7 @@ void trichromatic_orient_subproblems(struct bfs_struct* b, struct tripod_decompo
 	int k = 0;
 	while (f[k] == sp) k++;
 	//f[k], f[(k+1)%3], f[(k+2)%3]
+	//rotate f
 
 	printf("f = f%d = %d\n", k+1, f[k]); //temporary, so that diff will show no difference between the original code and the new modular arithmetic code
 
@@ -364,10 +365,14 @@ void bichromatic_decompose(struct bfs_struct* b, struct rmq_struct* r, struct tr
 	int* v_x_next = malloc(3*sizeof(int)); //mem leak
 	int* v_x_op = malloc(3*sizeof(int)); //mem leak
 	int* v_x_mirror = malloc(3*sizeof(int)); //mem leak
+	int* v_x_l = malloc(3*sizeof(int)); //mem leak
+	int* v_x_r = malloc(3*sizeof(int)); //mem leak
 	for (int i = 0; i < 3; i++){
 		v_x[i] = t->v_x[i];
 		v_x_next[i] = t->v_x_next[i];
 		v_x_mirror[i] = t->v_x_mirror[i];
+		v_x_l[i] = b->il[v_x[i]][b->pin[v_x[i]]];
+		(b->pin[v_x[i]] == 0) ? (v_x_r[i] = b->il[v_x[i]][(b->n[v_x[i]])-1]) : (v_x_r[i] = b->il[v_x[i]][b->pin[v_x[i]]-1]);
 	}
 
 	int v_a_l = b->il[v_a][b->pin[v_a]];
@@ -378,263 +383,109 @@ void bichromatic_decompose(struct bfs_struct* b, struct rmq_struct* r, struct tr
 	(b->pin[v_b] == 0) ? (v_b_r = b->il[v_b][(b->n[v_b])-1]) : (v_b_r = b->il[v_b][b->pin[v_b]-1]);
 	(b->pin[v_c] == 0) ? (v_c_r = b->il[v_c][(b->n[v_c])-1]) : (v_c_r = b->il[v_c][b->pin[v_c]-1]);
 
-	if (t->vertex_tripod_assign[v_a] == sp || t->vertex_tripod_assign[v_b] == sp || t->vertex_tripod_assign[v_c] == sp){ //if one of {leg a, leg b, leg c} is non-empty
+	int k;
+	for (k = 0; k < 3 && t->vertex_tripod_assign[v_x[k]] != sp; k++){
+		//this loop checks who is empty, k == 3 if none
+		//if k \in {0, 1, 2} then we're in the first if statement
+	}
+	//use: k, (k+1)%3, (k+2)%3
+
+	if (k < 3){ //if one of our three legs is non-empty (there can be at most one non-empty leg)
 		//here we either have case 5.1 or 5.2
 		//there can be at most one non-empty leg, since more empty legs lead to trichromatic subproblems
 		//the vertices of the crotch of sp are one of exactly three colours
-		if (t->vertex_tripod_assign[v_a] == sp){ //v_a is non-empty
-			if (v_a_next != v_b && v_a_next != v_c){ //if the path up the bfs tree from v_a does NOT lead to v_b or v_c
-				//here we have case 5.1
-				printf("we have two subproblems for sp %d: trichromatic + bichromatic\n", sp);
-				if (t->vertex_tripod_assign[v_a_next] == t->vertex_tripod_assign[v_c]){ //if v_a_next is the same colour as v_c
-					printf("bichromatic subproblem for sp %d will be on faces %d, %d\n", sp, v_a_r, v_c_mirror);
-					bichromatic_tripod( b, r, t, v_a_r, v_c_mirror);
-					printf("trichromatic subproblem for sp %d will be on faces %d, %d, %d\n", sp, f2, v_a_mirror, v_a_l);
-					trichromatic_tripod(b, r, t, f2, v_a_mirror, v_a_l);
-				}
-				else { //if v_a_next is the same colour as v_b
-					printf("bichromatic subproblem for sp %d will be on faces %d, %d\n", sp, v_a_l, v_a_mirror);
-					bichromatic_tripod( b, r, t, v_a_l, v_a_mirror);
-					printf("trichromatic subproblem for sp %d will be on faces %d, %d, %d\n", sp, f2, v_a_r, v_c_mirror);
-					trichromatic_tripod(b, r, t, f2, v_a_r, v_c_mirror);
-				}
+		if (v_x_next[k] != v_x[(k+1)%3] && v_x_next[k] != v_x[(k+2)%3]){ //if the path up the bfs tree from v_x[k] does NOT lead to v_x[(k+1)%3 or v_x[(k+2)%3]
+			//here we have case 5.1
+			printf("we have two subproblems for sp %d: trichromatic + bichromatic\n", sp);
+			if (t->vertex_tripod_assign[v_x_next[k]] == t->vertex_tripod_assign[v_x[(k+1)%3]]){ //if v_x_next[k] is the same colour as v_x[(k+1)%3]
+				printf("bichromatic subproblem for sp %d will be on faces %d, %d\n", sp, v_x_l[k], v_x_mirror[k]);
+				bichromatic_tripod( b, r, t, v_x_l[k], v_x_mirror[k]);
+				printf("trichromatic subproblem for sp %d will be on faces %d, %d, %d\n", sp, f2, v_x_r[k], v_x_mirror[(k+2)%3]);
+				trichromatic_tripod(b, r, t, f2, v_x_r[k], v_x_mirror[(k+2)%3]);
 			}
-			else {
-				//here we have case 5.2
-				printf("we have one subproblem for sp %d: trichromatic\n", sp);
-				printf("subproblem for sp %d will be on faces %d, %d, %d\n", sp, v_a_mirror, v_c_mirror, f2);
-				trichromatic_tripod(b, r, t, v_a_mirror, v_c_mirror, f2);
+			else { //if v_x_next[k] is the same colour as v_x[(k+2)%3]
+				printf("bichromatic subproblem for sp %d will be on faces %d, %d\n", sp, v_x_r[k], v_x_mirror[(k+2)%3]);
+				bichromatic_tripod( b, r, t, v_x_r[k], v_x_mirror[(k+2)%3]);
+				printf("trichromatic subproblem for sp %d will be on faces %d, %d, %d\n", sp, f2, v_x_mirror[k], v_x_l[k]);
+				trichromatic_tripod(b, r, t, f2, v_x_mirror[k], v_x_l[k]);
 			}
 		}
-		else if (t->vertex_tripod_assign[v_b] == sp){ //v_b is non-empty
-			if (v_b_next != v_a && v_b_next != v_c){ //if the path up the bfs tree from v_b does NOT lead to v_a or v_c
-				//here we have case 5.1
-				printf("we have two subproblems for sp %d: trichromatic + bichromatic\n", sp);
-				if (t->vertex_tripod_assign[v_b_next] == t->vertex_tripod_assign[v_a]){ //if v_b_next is the same colour as v_a
-					printf("bichromatic subproblem for sp %d will be on faces %d, %d\n", sp, v_b_r, v_a_mirror);
-					bichromatic_tripod( b, r, t, v_b_r, v_a_mirror);
-					printf("trichromatic subproblem for sp %d will be on faces %d, %d, %d\n", sp, f2, v_b_mirror, v_b_l);
-					trichromatic_tripod(b, r, t, f2, v_b_mirror, v_b_l);
-				}
-				else { //if v_b_next is the same colour as v_c
-					printf("bichromatic subproblem for sp %d will be on faces %d, %d\n", sp, v_b_l, v_b_mirror);
-					bichromatic_tripod( b, r, t, v_b_l, v_b_mirror);
-					printf("trichromatic subproblem for sp %d will be on faces %d, %d, %d\n", sp, f2, v_b_r, v_a_mirror);
-					trichromatic_tripod(b, r, t, f2, v_b_r, v_a_mirror);
-				}
-			}
-			else {
-				//here we have case 5.2
-				printf("we have one subproblem for sp %d: trichromatic\n", sp);
-				printf("subproblem for sp %d will be on faces %d, %d, %d\n", sp, v_b_mirror, v_a_mirror, f2);
-				trichromatic_tripod(b, r, t, v_b_mirror, v_a_mirror, f2);
-			}
-		}
-		else { //v_c is non-empty
-			if (v_c_next != v_a && v_c_next != v_b){ //if the path up the bfs tree from v_c does NOT lead to v_a or v_b
-				//here we have case 5.1
-				printf("we have two subproblems for sp %d: trichromatic + bichromatic\n", sp);
-				if (t->vertex_tripod_assign[v_c_next] == t->vertex_tripod_assign[v_b]){ //if v_c_next is the same colour as v_b
-					printf("bichromatic subproblem for sp %d will be on faces %d, %d\n", sp, v_c_r, v_b_mirror);
-					bichromatic_tripod( b, r, t, v_c_r, v_b_mirror);
-					printf("trichromatic subproblem for sp %d will be on faces %d, %d, %d\n", sp, f2, v_c_mirror, v_c_l);
-					trichromatic_tripod(b, r, t, f2, v_c_mirror, v_c_l);
-				}
-				else { //if v_c_next is the same colour as v_a
-					printf("bichromatic subproblem for sp %d will be on faces %d, %d\n", sp, v_c_l, v_c_mirror);
-					bichromatic_tripod( b, r, t, v_c_l, v_c_mirror);
-					printf("trichromatic subproblem for sp %d will be on faces %d, %d, %d\n", sp, f2, v_c_r, v_b_mirror);
-					trichromatic_tripod(b, r, t, f2, v_c_r, v_b_mirror);
-				}
-			}
-			else {
-				//here we have case 5.2
-				printf("we have one subproblem for sp %d: trichromatic\n", sp);
-				printf("subproblem for sp %d will be on faces %d, %d, %d\n", sp, v_c_mirror, v_b_mirror, f2);
-				trichromatic_tripod(b, r, t, v_c_mirror, v_b_mirror, f2);
-			}
+		else {
+			//here we have case 5.2
+			printf("we have one subproblem for sp %d: trichromatic\n", sp);
+			printf("subproblem for sp %d will be on faces %d, %d, %d\n", sp, v_x_mirror[k], v_x_mirror[(k+2)%3], f2);
+			trichromatic_tripod(b, r, t, v_x_mirror[k], v_x_mirror[(k+2)%3], f2);
 		}
 	}
-
 	else { //all legs are empty
 		//here we either have case 5.3, 5.4, 5.5, or 5.6 (the empty case)
 		//the vertices of the crotch of sp are one of exactly two colours
 
-		if (t->vertex_tripod_assign[v_a] == t->vertex_tripod_assign[v_b]){ //if v_a and v_b are the same colour, with v_c a different colour
-			//edge of interest is {v_a, v_b}
-			//mirror triangle of interest is v_a_mirror
+		int m;
+		for (m = 0; m < 3 && t->vertex_tripod_assign[v_x[m]] != t->vertex_tripod_assign[v_x[(k+1)%3]]; m++){
+			//this loop checks who is of the same colour
+		}
+		//use: m, (m+1)%3, (m+2)%3, with m and (m+1)%3 of the same colour
+
+		if (m < 3){ //if m and (m+1)%3 are the same colour, with (m+2)%3 a different colour
+			//edge of interest is {v_x[m], v_x[(m+1)%3]}
+			//mirror triangle of interest is v_x_mirror[m]
 			
-			//v_a_mirror will have two of its vertices the same colour as v_a and v_b
-			//v_a_mirror's third vertex is either the same colour as v_a and v_b, or is uncoloured
+			//v_x_mirror[m] will have two of its vertices the same colour as v_x[m] and v_x[(m+1)%3]
+			//v_x_mirror[m]'s third vertex is either the same colour as v_x[m] and v_x[(m+1)%3], or is uncoloured
 			
-			if ((b->bt[v_b] == v_a || b->bt[v_a] == v_b) && (f1 != f2)){ //problem here. we're not always picking the right mirror triangle
-				//if v_a is a bfs parent of v_b or v_b is a bfs parent of v_a, then we are in case 5.4
-				if (t->face_tripod_assign[v_b_mirror] == -1){
+			if ((b->bt[v_x[(m+1)%3]] == v_x[m] || b->bt[v_x[m]] == v_x[(m+1)%3]) && (f1 != f2)){
+				//if v_x[m] is a bfs parent of v_x[(m+1)%3] or v_x[(m+1)%3] is a bfs parent of v_x[m], then we are in case 5.4
+				//problem here. we're not always picking the right mirror triangle
+				if (t->face_tripod_assign[v_x_mirror[(m+1)%3]] == -1){
 					printf("we have one subproblem for sp %d: bichromatic\n", sp);
-					printf("here 1\n");
-					printf("bichromatic subproblem for sp %d will be on faces %d, %d\n", sp, f2, v_b_mirror);
-					bichromatic_tripod( b, r, t, f2, v_b_mirror);
+					printf("bichromatic subproblem for sp %d will be on faces %d, %d\n", sp, f2, v_x_mirror[(m+1)%3]);
+					bichromatic_tripod( b, r, t, f2, v_x_mirror[(m+1)%3]);
 				}
-				else if (t->face_tripod_assign[v_c_mirror] == -1){
+				else if (t->face_tripod_assign[v_x_mirror[(m+2)%3]] == -1){
 					printf("we have one subproblem for sp %d: bichromatic\n", sp);
-					printf("here 2\n");
-					printf("bichromatic subproblem for sp %d will be on faces %d, %d\n", sp, f2, v_c_mirror);
-					bichromatic_tripod( b, r, t, f2, v_c_mirror);
+					printf("bichromatic subproblem for sp %d will be on faces %d, %d\n", sp, f2, v_x_mirror[(m+2)%3]);
+					bichromatic_tripod( b, r, t, f2, v_x_mirror[(m+2)%3]);
 				}
 			}
 			//otherwise, we are in case 5.3 or 5.5
 			else if (f1 == f2){
-				if (b->bt[v_b] != v_a && b->bt[v_a] != v_b){ //are we crossing a coloured edge? if not:
-					if (t->face_tripod_assign[v_a_mirror] == -1){ //are we about to select a sp on which to recurse? if not:
+				if (b->bt[v_x[(m+1)%3]] != v_x[m] && b->bt[v_x[m]] != v_x[(m+1)%3]){ //are we crossing a coloured edge? if not:
+					if (t->face_tripod_assign[v_x_mirror[m]] == -1){ //are we about to select a sp on which to recurse? if not:
 						//if f1 == f2 then we are in case 5.5
 						printf("we have one subproblem for sp %d: monochromatic\n", sp);
-						printf("monochromatic subproblem for sp %d will be on face %d\n", sp, v_a_mirror);
-						monochromatic_tripod( b, r, t, v_a_mirror);
+						printf("monochromatic subproblem for sp %d will be on face %d\n", sp, v_x_mirror[m]);
+						monochromatic_tripod( b, r, t, v_x_mirror[m]);
 					}
 				}
 			}
 			else {
 				//we are in case 5.3
 				//for any coloured edge, either it's a tree edge or there's a sp on the other side
-				if (t->face_tripod_assign[v_a_mirror] == -1){ //make sure monochromatic subproblem exists with (t->face_tripod_assign[v_a_mirror] != t->vertex_tripod_assign[v_a]) check
+				if (t->face_tripod_assign[v_x_mirror[m]] == -1){ //make sure monochromatic subproblem exists
 					printf("we have two subproblems for sp %d: monochromatic + bichromatic\n", sp);
-					printf("monochromatic subproblem for sp %d will be on face %d\n", sp, v_a_mirror);
-					monochromatic_tripod( b, r, t, v_a_mirror);
+					printf("monochromatic subproblem for sp %d will be on face %d\n", sp, v_x_mirror[m]);
+					monochromatic_tripod( b, r, t, v_x_mirror[m]);
 				}
 				else {
 					printf("we have one subproblem for sp %d: bichromatic\n", sp);
-					printf("here 3\n");
 				}
-				//DIFFERENT CASES HERE, DEPENDING ON SPECIFIC TRIANGLE ORIENTATION
-				if ((b->bt[v_b] == v_c || b->bt[v_c] == v_b) || t->face_tripod_assign[v_b_mirror] > -1){
-					if (t->face_tripod_assign[v_c_mirror] == -1){
-						printf("bichromatic subproblem for sp %d will be on faces %d, %d\n", sp, f2, v_c_mirror);
-						bichromatic_tripod( b, r, t, f2, v_c_mirror);
+				//different cases here, depending on specific triangle orientation
+				if ((b->bt[v_x[(m+1)%3]] == v_x[(m+2)%3] || b->bt[v_x[(m+2)%3]] == v_x[(m+1)%3]) || t->face_tripod_assign[v_x_mirror[(m+1)%3]] > -1){
+					if (t->face_tripod_assign[v_x_mirror[(m+2)%3]] == -1){
+						printf("bichromatic subproblem for sp %d will be on faces %d, %d\n", sp, f2, v_x_mirror[(m+2)%3]);
+						bichromatic_tripod( b, r, t, f2, v_x_mirror[(m+2)%3]);
 					}
 				}
 				else {
-					if (t->face_tripod_assign[v_b_mirror] == -1){
-						printf("bichromatic subproblem for sp %d will be on faces %d, %d\n", sp, f2, v_b_mirror);
-						bichromatic_tripod( b, r, t, f2, v_b_mirror);
+					if (t->face_tripod_assign[v_x_mirror[(m+1)%3]] == -1){
+						printf("bichromatic subproblem for sp %d will be on faces %d, %d\n", sp, f2, v_x_mirror[(m+1)%3]);
+						bichromatic_tripod( b, r, t, f2, v_x_mirror[(m+1)%3]);
 					}
 				}
 			}
 		}
-		else if (t->vertex_tripod_assign[v_b] == t->vertex_tripod_assign[v_c]){ //if v_b and v_c are the same colour, with v_a a different colour
-			//edge of interest is {v_b, v_c}
-			//mirror triangle of interest is v_b_mirror
-			
-			//v_b_mirror will have two of its vertices the same colour as v_b and v_c
-			//v_b_mirror's third vertex is either the same colour as v_b and v_c, or is uncoloured
-			
-			if ((b->bt[v_c] == v_b || b->bt[v_b] == v_c) && (f1 != f2)){
-				//if v_b is a bfs parent of v_c or v_c is a bfs parent of v_b, then we are in case 5.4
-				if (t->face_tripod_assign[v_c_mirror] == -1){
-					printf("we have one subproblem for sp %d: bichromatic\n", sp);
-					printf("bichromatic subproblem for sp %d will be on faces %d, %d\n", sp, f2, v_c_mirror);
-					bichromatic_tripod( b, r, t, f2, v_c_mirror);
-				}
-				else if (t->face_tripod_assign[v_a_mirror] == -1){
-					printf("we have one subproblem for sp %d: bichromatic\n", sp);
-					printf("bichromatic subproblem for sp %d will be on faces %d, %d\n", sp, f2, v_a_mirror);
-					bichromatic_tripod( b, r, t, f2, v_a_mirror);
-				}
-			}
-			//otherwise, we are in case 5.3 or 5.5
-			else if (f1 == f2){
-				if (b->bt[v_c] != v_b && b->bt[v_b] != v_c){ //are we crossing a coloured edge? if not:
-					if (t->face_tripod_assign[v_b_mirror] == -1){ //are we about to select a sp on which to recurse? if not:
-						//if f1 == f2 then we are in case 5.5
-						printf("we have one subproblem for sp %d: monochromatic\n", sp);
-						printf("monochromatic subproblem for sp %d will be on face %d\n", sp, v_b_mirror);
-						monochromatic_tripod( b, r, t, v_b_mirror);
-					}
-				}
-			}
-			else {
-				//we are in case 5.3
-				//for any coloured edge, either it's a tree edge or there's a sp on the other side
-				if (t->face_tripod_assign[v_b_mirror] == -1){ //make sure monochromatic subproblem exists with (t->face_tripod_assign[v_b_mirror] != t->vertex_tripod_assign[v_b]) check
-					printf("we have two subproblems for sp %d: bichromatic + monochromatic\n", sp);
-					printf("monochromatic subproblem for sp %d will be on face %d\n", sp, v_b_mirror);
-					monochromatic_tripod( b, r, t, v_b_mirror);
-				}
-				else {
-					printf("we have one subproblem for sp %d: bichromatic\n", sp);
-				}
-				//DIFFERENT CASES HERE, DEPENDING ON SPECIFIC TRIANGLE ORIENTATION
-				if ((b->bt[v_c] == v_a || b->bt[v_a] == v_c) || t->face_tripod_assign[v_c_mirror] > -1){
-					if (t->face_tripod_assign[v_a_mirror] == -1){
-						printf("bichromatic subproblem for sp %d will be on faces %d, %d\n", sp, f2, v_a_mirror);
-						bichromatic_tripod( b, r, t, f2, v_a_mirror);
-					}
-				}
-				else {
-					if (t->face_tripod_assign[v_c_mirror] == -1){
-						printf("bichromatic subproblem for sp %d will be on faces %d, %d\n", sp, f2, v_c_mirror);
-						bichromatic_tripod( b, r, t, f2, v_c_mirror);
-					}
-				}
-			}
-		}
-		else if (t->vertex_tripod_assign[v_c] == t->vertex_tripod_assign[v_a]){ //if v_c and v_a are the same colour, with v_b a different colour
-			//edge of interest is {v_c, v_a}
-			//mirror triangle of interest is v_c_mirror
-			
-			//v_c_mirror will have two of its vertices the same colour as v_c and v_a
-			//v_c_mirror's third vertex is either the same colour as v_c and v_a, or is uncoloured
-			
-			if ((b->bt[v_a] == v_c || b->bt[v_c] == v_a) && (f1 != f2)){
-				//if v_c is a bfs parent of v_a or v_a is a bfs parent of v_c, then we are in case 5.4
-				if (t->face_tripod_assign[v_a_mirror] == -1){
-					printf("we have one subproblem for sp %d: bichromatic\n", sp);
-					printf("bichromatic subproblem for sp %d will be on faces %d, %d\n", sp, f2, v_a_mirror);
-					bichromatic_tripod( b, r, t, f2, v_a_mirror);
-				}
-				else if (t->face_tripod_assign[v_b_mirror] == -1){
-					printf("we have one subproblem for sp %d: bichromatic\n", sp);
-					printf("bichromatic subproblem for sp %d will be on faces %d, %d\n", sp, f2, v_b_mirror);
-					bichromatic_tripod( b, r, t, f2, v_b_mirror);
-				}
-			}
-			//otherwise, we are in case 5.3 or 5.5
-			else if (f1 == f2){
-				if (b->bt[v_a] != v_c && b->bt[v_c] != v_a){ //are we crossing a coloured edge? if not:
-					if (t->face_tripod_assign[v_c_mirror] == -1){ //are we about to select a sp on which to recurse? if not:
-						//if f1 == f2 then we are in case 5.5
-						printf("we have one subproblem for sp %d: monochromatic\n", sp);
-						printf("monochromatic subproblem for sp %d will be on face %d\n", sp, v_c_mirror);
-						monochromatic_tripod( b, r, t, v_c_mirror);
-					}
-				}
-			}
-			else {
-				//we are in case 5.3
-				//for any coloured edge, either it's a tree edge or there's a sp on the other side
-				if (t->face_tripod_assign[v_c_mirror] == -1){ //make sure monochromatic subproblem exists with (t->face_tripod_assign[v_c_mirror] != t->vertex_tripod_assign[v_c]) check
-					printf("we have two subproblems for sp %d: bichromatic + monochromatic\n", sp);
-					printf("monochromatic subproblem for sp %d will be on face %d\n", sp, v_c_mirror);
-					monochromatic_tripod( b, r, t, v_c_mirror);
-				}
-				else {
-					printf("we have one subproblem for sp %d: bichromatic\n", sp);
-				}
-				//DIFFERENT CASES HERE, DEPENDING ON SPECIFIC TRIANGLE ORIENTATION
-				if ((b->bt[v_a] == v_b || b->bt[v_b] == v_a) || t->face_tripod_assign[v_a_mirror] > -1){
-					if (t->face_tripod_assign[v_b_mirror] == -1){
-						printf("bichromatic subproblem for sp %d will be on faces %d, %d\n", sp, f2, v_b_mirror);
-						bichromatic_tripod( b, r, t, f2, v_b_mirror);
-					}
-				}
-				else {
-					if (t->face_tripod_assign[v_a_mirror] == -1){
-						printf("bichromatic subproblem for sp %d will be on faces %d, %d\n", sp, f2, v_a_mirror);
-						bichromatic_tripod( b, r, t, f2, v_a_mirror);
-					}
-				}
-			}
-		}
-		else {
+		else { // if m == 3
 			printf("special case involving the boundary of our planar graph\n"); //not necessarily the boundary...
 			printf("all vertices are different colours\n");
 			printf("are we done?\n"); //looks like it
@@ -715,10 +566,14 @@ void monochromatic_decompose(struct bfs_struct* b, struct rmq_struct* r, struct 
 	int* v_x_next = malloc(3*sizeof(int)); //mem leak
 	int* v_x_op = malloc(3*sizeof(int)); //mem leak
 	int* v_x_mirror = malloc(3*sizeof(int)); //mem leak
+	int* v_x_l = malloc(3*sizeof(int)); //mem leak
+	int* v_x_r = malloc(3*sizeof(int)); //mem leak
 	for (int i = 0; i < 3; i++){
 		v_x[i] = t->v_x[i];
 		v_x_next[i] = t->v_x_next[i];
 		v_x_mirror[i] = t->v_x_mirror[i];
+		v_x_l[i] = b->il[v_x[i]][b->pin[v_x[i]]];
+		(b->pin[v_x[i]] == 0) ? (v_x_r[i] = b->il[v_x[i]][(b->n[v_x[i]])-1]) : (v_x_r[i] = b->il[v_x[i]][b->pin[v_x[i]]-1]);
 	}
 
 	int v_a_l = b->il[v_a][b->pin[v_a]];
@@ -885,7 +740,7 @@ void monochromatic_decompose(struct bfs_struct* b, struct rmq_struct* r, struct 
 				}
 			}
 			else {
-				printf("else statement which we should never reach!!!!\n");
+				printf("else statement which we should never reach!!!!\n"); //assert k is not 3
 			}
 		}
 	}
