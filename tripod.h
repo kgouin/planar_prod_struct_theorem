@@ -8,6 +8,7 @@ struct tripod_decomposition_struct{
 	int v_x_mirror[3];
 	int v_x_l[3];
 	int v_x_r[3];
+	int portals[3][2]; //these are vertices that form the portal edges. there is at least one pair, and there are at most three pairs. -1 is used to fill non-existing portal pairs
 	int* vertex_tripod_assign; //for each vertex v, vertex_tripod_assign[v] represents the colour of the tripod v belongs to, -1 if it does not yet belong to a tripod
 	int* face_tripod_assign; //for each face f, face_tripod_assign[f] is -1 if it does not belong to a tripod, and face_tripod_assign[f]=f otherwise
 	int* tripod_assign_order; //for each tripod, tripod_assign_order stores its sp colour in the order in which we find them
