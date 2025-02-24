@@ -20,6 +20,11 @@ int* decompose(struct bfs_struct*, struct rmq_struct*, struct tripod_decompositi
 
 void store_tripod(struct bfs_struct*, struct tripod_decomposition_struct*, int);
 
+void portal_helper_r_l(struct tripod_decomposition_struct*, int, int, int[3], int[3]);
+void portal_helper_op(struct bfs_struct*, struct tripod_decomposition_struct*, int, int, int, int[3][2], int[3]);
+void portal_helper_mirror(struct bfs_struct*, struct tripod_decomposition_struct*, int, int, int, int[3]);
+void portal_helper_empty(struct tripod_decomposition_struct* t, int);
+
 int* trichromatic_tripod(struct bfs_struct*, struct rmq_struct*, struct tripod_decomposition_struct*, int, int, int);
 void trichromatic_orient_subproblems(struct bfs_struct*, struct tripod_decomposition_struct*, int, int, int, int);
 void trichromatic_decompose(struct bfs_struct*, struct rmq_struct*, struct tripod_decomposition_struct*, int, int, int, int);
