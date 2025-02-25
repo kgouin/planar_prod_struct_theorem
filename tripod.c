@@ -95,24 +95,24 @@ int* decompose(struct bfs_struct* b, struct rmq_struct* r, struct tripod_decompo
 
 /******************************************************** portal helpers ********************************************************/
 
-void portal_helper_r_l(struct tripod_decomposition_struct* t, int i, int portal_index, int v_x[3], int v_x_next[3]){
+void portal_helper_r_l(struct tripod_decomposition_struct* t, int portal_index, int v_x, int v_x_next){
 	//for v_x_r and v_x_l we want the last bfs edge
-	t->portals[portal_index][0] = v_x[i];
-	t->portals[portal_index][1] = v_x_next[i];
+	t->portals[portal_index][0] = v_x;
+	t->portals[portal_index][1] = v_x_next;
 }
 
-void portal_helper_op(struct bfs_struct* b, struct tripod_decomposition_struct* t, int sp, int i, int portal_index, int portals[3][2], int v_x_op[3]){
+void portal_helper_op(struct bfs_struct* b, struct tripod_decomposition_struct* t, int sp, int portal_index, int portals[3][2], int v_x_op){
 	//add portal info to t->portals
 	//for v_x_op we want the edge whose two endpoints are coloured with the two parent colours
 	//this edge will be one of the previous portal edges
 	//this previous portal edge is stored in t->portals[?][?], so we need to go through those edges before we start overwriting them
 	for (int j = 0; j < 3; j++){
 		for (int k = 0; k < 3; k++){
-			if (portals[j][0] == b->sim[v_x_op[i]][k]){
+			if (portals[j][0] == b->sim[v_x_op][k]){
 				for (int m = 0; m < 3; m++){
-					if (portals[j][1] == b->sim[v_x_op[i]][m]){
-						t->portals[0][0] = b->sim[v_x_op[i]][k];
-						t->portals[0][1] = b->sim[v_x_op[i]][m];
+					if (portals[j][1] == b->sim[v_x_op][m]){
+						t->portals[0][0] = b->sim[v_x_op][k];
+						t->portals[0][1] = b->sim[v_x_op][m];
 						break;
 					}
 				}
@@ -121,13 +121,13 @@ void portal_helper_op(struct bfs_struct* b, struct tripod_decomposition_struct* 
 	}
 }
 
-void portal_helper_mirror(struct bfs_struct* b, struct tripod_decomposition_struct* t, int sp, int i, int portal_index, int v_x_mirror[3]){
+void portal_helper_mirror(struct bfs_struct* b, struct tripod_decomposition_struct* t, int sp, int portal_index, int v_x_mirror){
 	//for v_x_mirror we want the shared edge between the most recent sp and v_x_mirror
 	//look through simplicies at indices sp & v_x_mirror to find the shared edge. that edge is the portal
 	int index = 0;
 	for (int j = 0; j < 3; j++){
 		for (int k = 0; k < 3; k++){
-			if (b->sim[sp][j] == b->sim[v_x_mirror[i]][k]){
+			if (b->sim[sp][j] == b->sim[v_x_mirror][k]){
 				t->portals[portal_index][index++] = b->sim[sp][j];
 				break;
 			}
@@ -139,6 +139,14 @@ void portal_helper_empty(struct tripod_decomposition_struct* t, int portal_index
 	//label non-existing portal edge with -1s
 	t->portals[portal_index][0] = -1;
 	t->portals[portal_index][1] = -1;
+}
+
+void portal_print(struct tripod_decomposition_struct* t){
+	printf("next portals: ");
+	for (int i = 0; i < 3; i++){
+		if (t->portals[i][0] != -1) printf("[%d, %d] ", t->portals[i][0], t->portals[i][1]);
+	}
+	printf("\n");
 }
 
 /******************************************************** trichromatic ********************************************************/
@@ -302,43 +310,28 @@ void trichromatic_decompose(struct bfs_struct* b, struct rmq_struct* r, struct t
 		if (t->vertex_tripod_assign[v_x[i]] == sp && t->vertex_tripod_assign[v_x[(i+1)%3]] == sp){ //leg i is non-empty && leg (i+1)%3 is non-empty
 			printf("subproblem x for sp %d is trichromatic\n", sp);
 			printf("subproblem x for sp %d will be on faces %d, %d, %d\n", sp, v_x_op[i], v_x_r[(i+1)%3], v_x_l[i]);
-			portal_helper_op(b, t, sp, i, 0, portals, v_x_op);
-			portal_helper_r_l(t, (i+1)%3, 1, v_x, v_x_next);
-			portal_helper_r_l(t, i, 2, v_x, v_x_next);
-			printf("next portals: \n");
-			for (int i = 0; i < 3; i++){
-				printf("%d %d ", t->portals[i][0], t->portals[i][1]);
-			}
-			printf("\n");
-			printf("1st if statement\n"); //portals look good
+			portal_helper_op(b, t, sp, 0, portals, v_x_op[i]);
+			portal_helper_r_l(t, 1, v_x[(i+1)%3], v_x_next[(i+1)%3]);
+			portal_helper_r_l(t, 2, v_x[i], v_x_next[i]);
+			portal_print(t);
 			trichromatic_tripod(b, r, t, v_x_op[i], v_x_r[(i+1)%3], v_x_l[i]);
 		}
 		else if (t->vertex_tripod_assign[v_x[i]] == sp && t->vertex_tripod_assign[v_x[(i+1)%3]] != sp){ //leg i is non-empty && leg (i+1)%3 is empty
 			printf("subproblem x for sp %d is trichromatic\n", sp);
 			printf("subproblem x for sp %d will be on faces %d, %d, %d\n", sp, v_x_op[i], v_x_mirror[i], v_x_l[i]);
-			portal_helper_op(b, t, sp, i, 0, portals, v_x_op);
-			portal_helper_mirror(b, t, sp, i, 1, v_x_mirror);
-			portal_helper_r_l(t, i, 2, v_x, v_x_next);
-			printf("next portals: \n");
-			for (int i = 0; i < 3; i++){
-				printf("%d %d ", t->portals[i][0], t->portals[i][1]);
-			}
-			printf("\n");
-			printf("2nd if statement\n"); //portals look good
+			portal_helper_op(b, t, sp, 0, portals, v_x_op[i]);
+			portal_helper_mirror(b, t, sp, 1, v_x_mirror[i]);
+			portal_helper_r_l(t, 2, v_x[i], v_x_next[i]);
+			portal_print(t);
 			trichromatic_tripod(b, r, t, v_x_op[i], v_x_mirror[i], v_x_l[i]);
 		}
 		else if (t->vertex_tripod_assign[v_x[i]] != sp && t->vertex_tripod_assign[v_x[(i+1)%3]] == sp){ //leg i is empty && leg (i+1)%3 is non-empty
 			printf("subproblem x for sp %d is trichromatic\n", sp);
 			printf("subproblem x for sp %d will be on faces %d, %d, %d\n", sp, v_x_op[i], v_x_r[(i+1)%3], v_x_mirror[i]);
-			portal_helper_op(b, t, sp, i, 0, portals, v_x_op);
-			portal_helper_r_l(t, (i+1)%3, 1, v_x, v_x_next);
-			portal_helper_mirror(b, t, sp, i, 2, v_x_mirror);
-			printf("next portals: \n");
-			for (int i = 0; i < 3; i++){
-				printf("%d %d ", t->portals[i][0], t->portals[i][1]);
-			}
-			printf("\n");
-			printf("3rd if statement\n"); //portals look good
+			portal_helper_op(b, t, sp, 0, portals, v_x_op[i]);
+			portal_helper_r_l(t, 1, v_x[(i+1)%3], v_x_next[(i+1)%3]);
+			portal_helper_mirror(b, t, sp, 2, v_x_mirror[i]);
+			portal_print(t);
 			trichromatic_tripod(b, r, t, v_x_op[i], v_x_r[(i+1)%3], v_x_mirror[i]);
 		}
 		else if (t->vertex_tripod_assign[v_x[i]] != sp && t->vertex_tripod_assign[v_x[(i+1)%3]] != sp){ //leg i is empty && leg (i+1)%3 is empty
@@ -349,15 +342,10 @@ void trichromatic_decompose(struct bfs_struct* b, struct rmq_struct* r, struct t
 			else {
 				printf("subproblem x for sp %d is bichromatic\n", sp);
 				printf("subproblem x for sp %d will be on faces %d, %d\n", sp, v_x_op[i], v_x_mirror[i]);
-				portal_helper_op(b, t, sp, i, 0, portals, v_x_op);
-				portal_helper_mirror(b, t, sp, i, 1, v_x_mirror);
+				portal_helper_op(b, t, sp, 0, portals, v_x_op[i]);
+				portal_helper_mirror(b, t, sp, 1, v_x_mirror[i]);
 				portal_helper_empty(t, 2);
-				printf("next portals: \n");
-				for (int i = 0; i < 3; i++){
-					printf("%d %d ", t->portals[i][0], t->portals[i][1]);
-				}
-				printf("\n");
-				printf("last if statement\n"); //portals look good
+				portal_print(t);
 				bichromatic_tripod( b, r, t, v_x_op[i], v_x_mirror[i]);
 			}
 		}
@@ -462,27 +450,33 @@ void bichromatic_decompose(struct bfs_struct* b, struct rmq_struct* r, struct tr
 			if (t->vertex_tripod_assign[v_x_next[k]] == t->vertex_tripod_assign[v_x[(k+1)%3]]){ //if v_x_next[k] is the same colour as v_x[(k+1)%3]
 				printf("bichromatic subproblem for sp %d will be on faces %d, %d\n", sp, v_x_l[k], v_x_mirror[k]);
 				//add portal info to t->portals
-				//for v_x_l we want the last bfs edge
-				//for v_x_mirror we want the shared edge between the most recent sp and v_x_mirror
+				portal_helper_r_l(t, 0, v_x[k], v_x_next[k]);
+				portal_helper_mirror(b, t, sp, 1, v_x_mirror[k]);
+				portal_helper_empty(t, 2);
+				portal_print(t);
 				bichromatic_tripod( b, r, t, v_x_l[k], v_x_mirror[k]);
 				printf("trichromatic subproblem for sp %d will be on faces %d, %d, %d\n", sp, f2, v_x_r[k], v_x_mirror[(k+2)%3]);
 				//add portal info to t->portals
-				//for f2 we want the edge whose two endpoints are coloured with the two parent colours
-				//for v_x_r we want the last bfs edge
-				//for v_x_mirror we want the shared edge between the most recent sp and v_x_mirror
+				portal_helper_op(b, t, sp, 0, portals, f2);
+				portal_helper_r_l(t, 1, v_x[k], v_x_next[k]);
+				portal_helper_mirror(b, t, sp, 2, v_x_mirror[(k+2)%3]);
+				portal_print(t);
 				trichromatic_tripod(b, r, t, f2, v_x_r[k], v_x_mirror[(k+2)%3]);
 			}
 			else { //if v_x_next[k] is the same colour as v_x[(k+2)%3]
 				printf("bichromatic subproblem for sp %d will be on faces %d, %d\n", sp, v_x_r[k], v_x_mirror[(k+2)%3]);
 				//add portal info to t->portals
-				//for v_x_r we want the last bfs edge
-				//for v_x_mirror we want the shared edge between the most recent sp and v_x_mirror
+				portal_helper_r_l(t, 0, v_x[k], v_x_next[k]);
+				portal_helper_mirror(b, t, sp, 1, v_x_mirror[(k+2)%3]);
+				portal_helper_empty(t, 2);
+				portal_print(t);
 				bichromatic_tripod( b, r, t, v_x_r[k], v_x_mirror[(k+2)%3]);
 				printf("trichromatic subproblem for sp %d will be on faces %d, %d, %d\n", sp, f2, v_x_mirror[k], v_x_l[k]);
 				//add portal info to t->portals
-				//for f2 we want the edge whose two endpoints are coloured with the two parent colours
-				//for v_x_mirror we want the shared edge between the most recent sp and v_x_mirror
-				//for v_x_l we want the last bfs edge
+				portal_helper_op(b, t, sp, 0, portals, f2);
+				portal_helper_mirror(b, t, sp, 1, v_x_mirror[k]);
+				portal_helper_r_l(t, 2, v_x[k], v_x_next[k]);
+				portal_print(t);
 				trichromatic_tripod(b, r, t, f2, v_x_mirror[k], v_x_l[k]);
 			}
 		}
@@ -491,9 +485,10 @@ void bichromatic_decompose(struct bfs_struct* b, struct rmq_struct* r, struct tr
 			printf("we have one subproblem for sp %d: trichromatic\n", sp);
 			printf("subproblem for sp %d will be on faces %d, %d, %d\n", sp, v_x_mirror[k], v_x_mirror[(k+2)%3], f2);
 			//add portal info to t->portals
-			//for v_x_mirror[k] we want the shared edge between the most recent sp and v_x_mirror[k]
-			//for v_x_mirror[(k+2)%3] we want the shared edge between the most recent sp and v_x_mirror[(k+2)%3]
-			//for f2 we want the edge whose two endpoints are coloured with the two parent colours
+			portal_helper_mirror(b, t, sp, 0, v_x_mirror[k]);
+			portal_helper_mirror(b, t, sp, 1, v_x_mirror[(k+2)%3]);
+			portal_helper_op(b, t, sp, 2, portals, f2);
+			portal_print(t);
 			trichromatic_tripod(b, r, t, v_x_mirror[k], v_x_mirror[(k+2)%3], f2);
 		}
 	}
@@ -546,15 +541,19 @@ void bichromatic_decompose(struct bfs_struct* b, struct rmq_struct* r, struct tr
 				if (t->face_tripod_assign[v_x_mirror[(m+1)%3]] == -1){
 					printf("bichromatic subproblem for sp %d will be on faces %d, %d\n", sp, f2, v_x_mirror[(m+1)%3]);
 					//add portal info to t->portals
-					//for f2 we want the edge whose two endpoints are coloured with the two parent colours
-					//for v_x_mirror we want the shared edge between the most recent sp and v_x_mirror
+					portal_helper_op(b, t, sp, 0, portals, f2);
+					portal_helper_mirror(b, t, sp, 1, v_x_mirror[(m+1)%3]);
+					portal_helper_empty(t, 2);
+					portal_print(t);
 					bichromatic_tripod( b, r, t, f2, v_x_mirror[(m+1)%3]);
 				}
 				else if (t->face_tripod_assign[v_x_mirror[(m+2)%3]] == -1){
 					printf("bichromatic subproblem for sp %d will be on faces %d, %d\n", sp, f2, v_x_mirror[(m+2)%3]);
 					//add portal info to t->portals
-					//for f2 we want the edge whose two endpoints are coloured with the two parent colours
-					//for v_x_mirror we want the shared edge between the most recent sp and v_x_mirror
+					portal_helper_op(b, t, sp, 0, portals, f2);
+					portal_helper_mirror(b, t, sp, 1, v_x_mirror[(m+2)%3]);
+					portal_helper_empty(t, 2);
+					portal_print(t);
 					bichromatic_tripod( b, r, t, f2, v_x_mirror[(m+2)%3]);
 				}
 			}
@@ -566,7 +565,10 @@ void bichromatic_decompose(struct bfs_struct* b, struct rmq_struct* r, struct tr
 						printf("we have one subproblem for sp %d: monochromatic\n", sp);
 						printf("monochromatic subproblem for sp %d will be on face %d\n", sp, v_x_mirror[m]);
 						//add portal info to t->portals
-						//for v_x_mirror we want the shared edge between the most recent sp and v_x_mirror
+						portal_helper_mirror(b, t, sp, 0, v_x_mirror[m]);
+						portal_helper_empty(t, 1);
+						portal_helper_empty(t, 2);
+						portal_print(t);
 						monochromatic_tripod( b, r, t, v_x_mirror[m]);
 					}
 				}
@@ -578,7 +580,10 @@ void bichromatic_decompose(struct bfs_struct* b, struct rmq_struct* r, struct tr
 					printf("we have two subproblems for sp %d: monochromatic + bichromatic\n", sp);
 					printf("monochromatic subproblem for sp %d will be on face %d\n", sp, v_x_mirror[m]);
 					//add portal info to t->portals
-					//for v_x_mirror we want the shared edge between the most recent sp and v_x_mirror
+					portal_helper_mirror(b, t, sp, 0, v_x_mirror[m]);
+					portal_helper_empty(t, 1);
+					portal_helper_empty(t, 2);
+					portal_print(t);
 					monochromatic_tripod( b, r, t, v_x_mirror[m]);
 				}
 				else {
@@ -589,8 +594,10 @@ void bichromatic_decompose(struct bfs_struct* b, struct rmq_struct* r, struct tr
 					if (t->face_tripod_assign[v_x_mirror[(m+2)%3]] == -1){
 						printf("bichromatic subproblem for sp %d will be on faces %d, %d\n", sp, f2, v_x_mirror[(m+2)%3]);
 						//add portal info to t->portals
-						//for f2 we want the edge whose two endpoints are coloured with the two parent colours
-						//for v_x_mirror we want the shared edge between the most recent sp and v_x_mirror
+						portal_helper_op(b, t, sp, 0, portals, f2);
+						portal_helper_mirror(b, t, sp, 1, v_x_mirror[(m+2)%3]);
+						portal_helper_empty(t, 2);
+						portal_print(t);
 						bichromatic_tripod( b, r, t, f2, v_x_mirror[(m+2)%3]);
 					}
 				}
@@ -598,8 +605,10 @@ void bichromatic_decompose(struct bfs_struct* b, struct rmq_struct* r, struct tr
 					if (t->face_tripod_assign[v_x_mirror[(m+1)%3]] == -1){
 						printf("bichromatic subproblem for sp %d will be on faces %d, %d\n", sp, f2, v_x_mirror[(m+1)%3]);
 						//add portal info to t->portals
-						//for f2 we want the edge whose two endpoints are coloured with the two parent colours
-						//for v_x_mirror we want the shared edge between the most recent sp and v_x_mirror
+						portal_helper_op(b, t, sp, 0, portals, f2);
+						portal_helper_mirror(b, t, sp, 1, v_x_mirror[(m+1)%3]);
+						portal_helper_empty(t, 2);
+						portal_print(t);
 						bichromatic_tripod( b, r, t, f2, v_x_mirror[(m+1)%3]);
 					}
 				}
@@ -701,13 +710,17 @@ void monochromatic_decompose(struct bfs_struct* b, struct rmq_struct* r, struct 
 			printf("we have two subproblems for sp %d: bichromatic + bichromatic\n", sp);
 			printf("first bichromatic subproblem for sp %d will be on faces %d, %d\n", sp, v_x_r[k], v_x_mirror[(k+2)%3]);
 			//add portal info to t->portals
-			//for v_x_r we want the last bfs edge
-			//for v_x_mirror we want the shared edge between the most recent sp and v_x_mirror
+			portal_helper_r_l(t, 0, v_x[k], v_x_next[k]);
+			portal_helper_mirror(b, t, sp, 1, v_x_mirror[(k+2)%3]);
+			portal_helper_empty(t, 2);
+			portal_print(t);
 			bichromatic_tripod( b, r, t, v_x_r[k], v_x_mirror[(k+2)%3]);
 			printf("second bichromatic subproblem for sp %d will be on faces %d, %d\n", sp, v_x_l[k], v_x_mirror[k]);
 			//add portal info to t->portals
-			//for v_x_l we want the last bfs edge
-			//for v_x_mirror we want the shared edge between the most recent sp and v_x_mirror
+			portal_helper_r_l(t, 0, v_x[k], v_x_next[k]);
+			portal_helper_mirror(b, t, sp, 1, v_x_mirror[k]);
+			portal_helper_empty(t, 2);
+			portal_print(t);
 			bichromatic_tripod( b, r, t, v_x_l[k], v_x_mirror[k]);
 		}
 		else {
@@ -715,8 +728,10 @@ void monochromatic_decompose(struct bfs_struct* b, struct rmq_struct* r, struct 
 			printf("we have one subproblem for sp %d: bichromatic\n", sp);
 			printf("subproblem for sp %d will be on faces %d, %d\n", sp, v_x_mirror[(k+2)%3], v_x_mirror[k]);
 			//add portal info to t->portals
-			//for v_x_mirror[(k+2)%3] we want the shared edge between the most recent sp and v_x_mirror[(k+2)%3]
-			//for v_x_mirror[k] we want the shared edge between the most recent sp and v_x_mirror[k]
+			portal_helper_mirror(b, t, sp, 0, v_x_mirror[(k+2)%3]);
+			portal_helper_mirror(b, t, sp, 1, v_x_mirror[k]);
+			portal_helper_empty(t, 2);
+			portal_print(t);
 			bichromatic_tripod(b, r, t, v_x_mirror[(k+2)%3], v_x_mirror[k]);
 		}
 	}
@@ -737,7 +752,10 @@ void monochromatic_decompose(struct bfs_struct* b, struct rmq_struct* r, struct 
 					printf("we have one subproblem for sp %d: monochromatic\n", sp);
 					printf("monochromatic subproblem for sp %d will be on face %d\n", sp, v_x_mirror[(m+1)%3]);
 					//add portal info to t->portals
-					//for v_x_mirror we want the shared edge between the most recent sp and v_x_mirror
+					portal_helper_mirror(b, t, sp, 0, v_x_mirror[(m+1)%3]);
+					portal_helper_empty(t, 1);
+					portal_helper_empty(t, 2);
+					portal_print(t);
 					monochromatic_tripod( b, r, t, v_x_mirror[(m+1)%3]);
 				}
 				//otherwise we are in case 6.5 (the empty case)
@@ -749,7 +767,10 @@ void monochromatic_decompose(struct bfs_struct* b, struct rmq_struct* r, struct 
 					printf("we have one subproblem for sp %d: monochromatic\n", sp);
 					printf("monochromatic subproblem for sp %d will be on face %d\n", sp, v_x_mirror[(m+2)%3]);
 					//add portal info to t->portals
-					//for v_x_mirror we want the shared edge between the most recent sp and v_x_mirror
+					portal_helper_mirror(b, t, sp, 0, v_x_mirror[(m+2)%3]);
+					portal_helper_empty(t, 1);
+					portal_helper_empty(t, 2);
+					portal_print(t);
 					monochromatic_tripod( b, r, t, v_x_mirror[(m+2)%3]);
 				}
 				//otherwise we are in case 6.5 (the empty case)
@@ -770,13 +791,19 @@ void monochromatic_decompose(struct bfs_struct* b, struct rmq_struct* r, struct 
 				if (t->face_tripod_assign[v_x_mirror[(p+1)%3]] == -1){ //make sure v_x_mirror[(p+1)%3] is not a sp
 					printf("first monochromatic subproblem for sp %d will be on face %d\n", sp, v_x_mirror[(p+1)%3]);
 					//add portal info to t->portals
-					//for v_x_mirror we want the shared edge between the most recent sp and v_x_mirror
+					portal_helper_mirror(b, t, sp, 0, v_x_mirror[(p+1)%3]);
+					portal_helper_empty(t, 1);
+					portal_helper_empty(t, 2);
+					portal_print(t);
 					monochromatic_tripod( b, r, t, v_x_mirror[(p+1)%3]);
 				}
 				if (t->face_tripod_assign[v_x_mirror[(p+2)%3]] == -1){ //make sure v_x_mirror[(p+2)%3] is not a sp
 					printf("second monochromatic subproblem for sp %d will be on face %d\n", sp, v_x_mirror[(p+2)%3]);
 					//add portal info to t->portals
-					//for v_x_mirror we want the shared edge between the most recent sp and v_x_mirror
+					portal_helper_mirror(b, t, sp, 0, v_x_mirror[(p+2)%3]);
+					portal_helper_empty(t, 1);
+					portal_helper_empty(t, 2);
+					portal_print(t);
 					monochromatic_tripod( b, r, t, v_x_mirror[(p+2)%3]);
 				}
 			}
