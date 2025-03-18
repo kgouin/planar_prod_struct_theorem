@@ -33,13 +33,21 @@ void init(struct bfs_struct* b, struct rmq_struct* r, struct tripod_decompositio
 		t->tripod_assign_order[i] = -1;
 	}
 	t->tripod_assign_order_index = 3;
-	//label portal edges in counterclockwise order
+	//label portal edges in clockwise, NOT counterclockwise order, since we are dealing with the outer face
 	t->portals[0][0] = 0;
 	t->portals[0][1] = 2;
 	t->portals[1][0] = 2;
 	t->portals[1][1] = 1;
 	t->portals[2][0] = 1;
 	t->portals[2][1] = 0;
+
+	//label less intrusive portal edges in clockwise, NOT counterclockwise order, since we are dealing with the outer face
+	t->less_intrusive_portals[0][0] = 0; //outer face
+	t->less_intrusive_portals[0][1] = 0;
+	t->less_intrusive_portals[1][0] = 0; //outer face
+	t->less_intrusive_portals[1][1] = 1;
+	t->less_intrusive_portals[2][0] = 0; //outer face
+	t->less_intrusive_portals[2][1] = 2;
 
 	printf("--------------------------------------------------------------------------------------------------------------------------------\n");
 	printf("--------------------------------------------------------------------------------------------------------------------------------\n");
@@ -65,6 +73,12 @@ void init(struct bfs_struct* b, struct rmq_struct* r, struct tripod_decompositio
 	printf("initial portals: \n");
 	for (int i = 0; i < 3; i++){
 		printf("%d %d ", t->portals[i][0], t->portals[i][1]);
+	}
+	printf("\n");
+
+	printf("initial less intrusive portals: \n");
+	for (int i = 0; i < 3; i++){
+		printf("%d %d ", t->less_intrusive_portals[i][0], t->less_intrusive_portals[i][1]);
 	}
 	printf("\n");
 }
@@ -109,10 +123,10 @@ void portal_helper_op(struct bfs_struct* b, struct tripod_decomposition_struct* 
 	for (int j = 0; j < 3; j++){
 		for (int k = 0; k < 3; k++){
 			if (portals[j][0] == b->sim[v_x_op][k]){
-				for (int m = 0; m < 3; m++){
+				for (int m = 0; m < 3; m++){ //b->sim[v_x_op][(k+1%3)] should be our other vertex
 					if (portals[j][1] == b->sim[v_x_op][m]){
-						t->portals[0][0] = b->sim[v_x_op][k];
-						t->portals[0][1] = b->sim[v_x_op][m];
+						t->portals[portal_index][0] = b->sim[v_x_op][k];
+						t->portals[portal_index][1] = b->sim[v_x_op][m];
 						break;
 					}
 				}
@@ -127,7 +141,7 @@ void portal_helper_mirror(struct bfs_struct* b, struct tripod_decomposition_stru
 	int index = 0;
 	for (int j = 0; j < 3; j++){
 		for (int k = 0; k < 3; k++){
-			if (b->sim[sp][j] == b->sim[v_x_mirror][k]){
+			if (b->sim[sp][j] == b->sim[v_x_mirror][k]){ //this could be mirror[k+2 % 3] or sp[j+1 % 3]
 				t->portals[portal_index][index++] = b->sim[sp][j];
 				break;
 			}
@@ -141,10 +155,67 @@ void portal_helper_empty(struct tripod_decomposition_struct* t, int portal_index
 	t->portals[portal_index][1] = -1;
 }
 
+/******************************************************** less intrusive portal helpers ********************************************************/
+
+void less_intrusive_portal_helper_r_l(struct tripod_decomposition_struct* t, int r_l_triangle, int v, int portal_index){
+	t->less_intrusive_portals[portal_index][0] = r_l_triangle;
+	t->less_intrusive_portals[1][1] = v;
+} //this should be good
+
+void less_intrusive_portal_helper_op(struct bfs_struct* b, struct tripod_decomposition_struct* t, int less_intrusive_portals[3][2], int op_triangle, int portal_index){
+	t->less_intrusive_portals[portal_index][0] = op_triangle;
+	for (int j = 0; j < 3; j++){ //look through previous less_intrusive_portals to find portal pair [op_triangle, v]. we want this to be our current portal
+		if (less_intrusive_portals[j][0] == op_triangle){
+			t->less_intrusive_portals[portal_index][1] = less_intrusive_portals[j][1];
+			break;
+		}
+	}
+} //this should be good
+
+void less_intrusive_portal_helper_mirror(struct bfs_struct* b, struct tripod_decomposition_struct* t, int sp, int mirror_triangle, int portal_index){
+	t->less_intrusive_portals[portal_index][0] = mirror_triangle;
+	for (int j = 0; j < 3; j++){ //look through b->tri at index sp to find index j of mirror_triangle in that array. v will be b->sim[sp][j]
+		if (b->tri[sp][j] == mirror_triangle){
+			t->less_intrusive_portals[portal_index][1] = b->sim[sp][j]; //this is possible because of the way our data is arranged
+			//careful here
+			//although I think this may be okay, because of the way the data is arranged?
+			break;
+		}
+	}
+
+	//if the above is not okay, then we'll need something like this:
+
+	/*
+	t->less_intrusive_portals[portal_index][0] = mirror_triangle;
+	for (int j = 0; j < 3; j++){ //look through b->tri at index sp to find index j of mirror_triangle in that array. v will be b->sim[sp][j]
+		if (b->tri[sp][j] == mirror_triangle){
+			if (b->sim[sp][(j+1)%3] == b->sim[mirror_triangle][(j+2)%3]){
+				t->less_intrusive_portals[portal_index][1] = b->sim[sp][(j+2)%3]; //this is possible because of the way our data is arranged
+			}
+			else t->less_intrusive_portals[portal_index][1] = b->sim[sp][j]; //this is possible because of the way our data is arranged
+			break;
+		}
+	}
+	*/
+}
+
+void less_intrusive_portal_helper_empty(struct tripod_decomposition_struct* t, int portal_index){
+	t->less_intrusive_portals[portal_index][0] = -1;
+	t->less_intrusive_portals[portal_index][1] = -1;
+} //this should be good
+
+/******************************************************** portal print ********************************************************/
+
 void portal_print(struct tripod_decomposition_struct* t){
 	printf("next portals: ");
 	for (int i = 0; i < 3; i++){
 		if (t->portals[i][0] != -1) printf("[%d, %d] ", t->portals[i][0], t->portals[i][1]);
+	}
+	printf("\n");
+
+	printf("less intrusive next portals: ");
+	for (int i = 0; i < 3; i++){
+		if (t->less_intrusive_portals[i][0] != -1) printf("[%d, %d] ", t->less_intrusive_portals[i][0], t->less_intrusive_portals[i][1]);
 	}
 	printf("\n");
 }
@@ -295,6 +366,7 @@ void trichromatic_decompose(struct bfs_struct* b, struct rmq_struct* r, struct t
 	int v_x_l[3];
 	int v_x_r[3];
 	int portals[3][2];
+	int less_intrusive_portals[3][2];
 	for (int i = 0; i < 3; i++){
 		v_x[i] = t->v_x[i];
 		v_x_next[i] = t->v_x_next[i];
@@ -304,6 +376,8 @@ void trichromatic_decompose(struct bfs_struct* b, struct rmq_struct* r, struct t
 		(b->pin[v_x[i]] == 0) ? (v_x_r[i] = b->il[v_x[i]][(b->n[v_x[i]])-1]) : (v_x_r[i] = b->il[v_x[i]][b->pin[v_x[i]]-1]);
 		portals[i][0] = t->portals[i][0];
 		portals[i][1] = t->portals[i][1];
+		less_intrusive_portals[i][0] = t->less_intrusive_portals[i][0];
+		less_intrusive_portals[i][1] = t->less_intrusive_portals[i][1];
 	}
 
 	for (int i = 0; i < 3; i++){
@@ -313,6 +387,9 @@ void trichromatic_decompose(struct bfs_struct* b, struct rmq_struct* r, struct t
 			portal_helper_op(b, t, sp, 0, portals, v_x_op[i]);
 			portal_helper_r_l(t, 1, v_x[(i+1)%3], v_x_next[(i+1)%3]);
 			portal_helper_r_l(t, 2, v_x[i], v_x_next[i]);
+			less_intrusive_portal_helper_op(b, t, less_intrusive_portals, v_x_op[i], 0); //new
+			less_intrusive_portal_helper_r_l(t, v_x_r[(i+1)%3], v_x[(i+1)%3], 1); //new
+			less_intrusive_portal_helper_r_l(t, v_x_l[i], v_x[i], 2); //new
 			portal_print(t);
 			trichromatic_tripod(b, r, t, v_x_op[i], v_x_r[(i+1)%3], v_x_l[i]);
 		}
@@ -322,6 +399,9 @@ void trichromatic_decompose(struct bfs_struct* b, struct rmq_struct* r, struct t
 			portal_helper_op(b, t, sp, 0, portals, v_x_op[i]);
 			portal_helper_mirror(b, t, sp, 1, v_x_mirror[i]);
 			portal_helper_r_l(t, 2, v_x[i], v_x_next[i]);
+			less_intrusive_portal_helper_op(b, t, less_intrusive_portals, v_x_op[i], 0); //new
+			less_intrusive_portal_helper_mirror(b, t, sp, v_x_mirror[i], 1); //new
+			less_intrusive_portal_helper_r_l(t, v_x_l[i], v_x[i], 2); //new
 			portal_print(t);
 			trichromatic_tripod(b, r, t, v_x_op[i], v_x_mirror[i], v_x_l[i]);
 		}
@@ -331,6 +411,9 @@ void trichromatic_decompose(struct bfs_struct* b, struct rmq_struct* r, struct t
 			portal_helper_op(b, t, sp, 0, portals, v_x_op[i]);
 			portal_helper_r_l(t, 1, v_x[(i+1)%3], v_x_next[(i+1)%3]);
 			portal_helper_mirror(b, t, sp, 2, v_x_mirror[i]);
+			less_intrusive_portal_helper_op(b, t, less_intrusive_portals, v_x_op[i], 0); //new
+			less_intrusive_portal_helper_r_l(t, v_x_r[(i+1)%3], v_x[(i+1)%3], 1); //new
+			less_intrusive_portal_helper_mirror(b, t, sp, v_x_mirror[i], 2); //new
 			portal_print(t);
 			trichromatic_tripod(b, r, t, v_x_op[i], v_x_r[(i+1)%3], v_x_mirror[i]);
 		}
@@ -345,6 +428,9 @@ void trichromatic_decompose(struct bfs_struct* b, struct rmq_struct* r, struct t
 				portal_helper_op(b, t, sp, 0, portals, v_x_op[i]);
 				portal_helper_mirror(b, t, sp, 1, v_x_mirror[i]);
 				portal_helper_empty(t, 2);
+				less_intrusive_portal_helper_op(b, t, less_intrusive_portals, v_x_op[i], 0); //new
+				less_intrusive_portal_helper_mirror(b, t, sp, v_x_mirror[i], 1); //new
+				less_intrusive_portal_helper_empty(t, 2); //new
 				portal_print(t);
 				bichromatic_tripod( b, r, t, v_x_op[i], v_x_mirror[i]);
 			}
@@ -423,6 +509,7 @@ void bichromatic_decompose(struct bfs_struct* b, struct rmq_struct* r, struct tr
 	int v_x_l[3];
 	int v_x_r[3];
 	int portals[3][2];
+	int less_intrusive_portals[3][2];
 	for (int i = 0; i < 3; i++){
 		v_x[i] = t->v_x[i];
 		v_x_next[i] = t->v_x_next[i];
@@ -431,6 +518,8 @@ void bichromatic_decompose(struct bfs_struct* b, struct rmq_struct* r, struct tr
 		(b->pin[v_x[i]] == 0) ? (v_x_r[i] = b->il[v_x[i]][(b->n[v_x[i]])-1]) : (v_x_r[i] = b->il[v_x[i]][b->pin[v_x[i]]-1]);
 		portals[i][0] = t->portals[i][0];
 		portals[i][1] = t->portals[i][1];
+		less_intrusive_portals[i][0] = t->less_intrusive_portals[i][0];
+		less_intrusive_portals[i][1] = t->less_intrusive_portals[i][1];
 	}
 
 	int k;
@@ -453,6 +542,9 @@ void bichromatic_decompose(struct bfs_struct* b, struct rmq_struct* r, struct tr
 				portal_helper_r_l(t, 0, v_x[k], v_x_next[k]);
 				portal_helper_mirror(b, t, sp, 1, v_x_mirror[k]);
 				portal_helper_empty(t, 2);
+				less_intrusive_portal_helper_r_l(t, v_x_l[k], v_x[k], 0); //new
+				less_intrusive_portal_helper_mirror(b, t, sp, v_x_mirror[k], 1); //new
+				less_intrusive_portal_helper_empty(t, 2); //new
 				portal_print(t);
 				bichromatic_tripod( b, r, t, v_x_l[k], v_x_mirror[k]);
 				printf("trichromatic subproblem for sp %d will be on faces %d, %d, %d\n", sp, f2, v_x_r[k], v_x_mirror[(k+2)%3]);
@@ -460,6 +552,9 @@ void bichromatic_decompose(struct bfs_struct* b, struct rmq_struct* r, struct tr
 				portal_helper_op(b, t, sp, 0, portals, f2);
 				portal_helper_r_l(t, 1, v_x[k], v_x_next[k]);
 				portal_helper_mirror(b, t, sp, 2, v_x_mirror[(k+2)%3]);
+				less_intrusive_portal_helper_op(b, t, less_intrusive_portals, f2, 0); //new
+				less_intrusive_portal_helper_r_l(t, v_x_r[k], v_x[k], 1); //new
+				less_intrusive_portal_helper_mirror(b, t, sp, v_x_mirror[(k+2)%3], 2); //new
 				portal_print(t);
 				trichromatic_tripod(b, r, t, f2, v_x_r[k], v_x_mirror[(k+2)%3]);
 			}
@@ -469,6 +564,9 @@ void bichromatic_decompose(struct bfs_struct* b, struct rmq_struct* r, struct tr
 				portal_helper_r_l(t, 0, v_x[k], v_x_next[k]);
 				portal_helper_mirror(b, t, sp, 1, v_x_mirror[(k+2)%3]);
 				portal_helper_empty(t, 2);
+				less_intrusive_portal_helper_r_l(t, v_x_r[k], v_x[k], 0); //new
+				less_intrusive_portal_helper_mirror(b, t, sp, v_x_mirror[(k+2)%3], 1); //new
+				less_intrusive_portal_helper_empty(t, 2); //new
 				portal_print(t);
 				bichromatic_tripod( b, r, t, v_x_r[k], v_x_mirror[(k+2)%3]);
 				printf("trichromatic subproblem for sp %d will be on faces %d, %d, %d\n", sp, f2, v_x_mirror[k], v_x_l[k]);
@@ -476,6 +574,9 @@ void bichromatic_decompose(struct bfs_struct* b, struct rmq_struct* r, struct tr
 				portal_helper_op(b, t, sp, 0, portals, f2);
 				portal_helper_mirror(b, t, sp, 1, v_x_mirror[k]);
 				portal_helper_r_l(t, 2, v_x[k], v_x_next[k]);
+				less_intrusive_portal_helper_op(b, t, less_intrusive_portals, f2, 0); //new
+				less_intrusive_portal_helper_mirror(b, t, sp, v_x_mirror[k], 1); //new
+				less_intrusive_portal_helper_r_l(t, v_x_l[k], v_x[k], 2); //new
 				portal_print(t);
 				trichromatic_tripod(b, r, t, f2, v_x_mirror[k], v_x_l[k]);
 			}
@@ -488,6 +589,9 @@ void bichromatic_decompose(struct bfs_struct* b, struct rmq_struct* r, struct tr
 			portal_helper_mirror(b, t, sp, 0, v_x_mirror[k]);
 			portal_helper_mirror(b, t, sp, 1, v_x_mirror[(k+2)%3]);
 			portal_helper_op(b, t, sp, 2, portals, f2);
+			less_intrusive_portal_helper_mirror(b, t, sp, v_x_mirror[k], 0); //new
+			less_intrusive_portal_helper_mirror(b, t, sp, v_x_mirror[(k+2)%3], 1); //new
+			less_intrusive_portal_helper_op(b, t, less_intrusive_portals, f2, 2); //new
 			portal_print(t);
 			trichromatic_tripod(b, r, t, v_x_mirror[k], v_x_mirror[(k+2)%3], f2);
 		}
@@ -512,31 +616,28 @@ void bichromatic_decompose(struct bfs_struct* b, struct rmq_struct* r, struct tr
 			if ((b->bt[v_x[(m+1)%3]] == v_x[m] || b->bt[v_x[m]] == v_x[(m+1)%3]) && (f1 != f2)){
 				//if v_x[m] is a bfs parent of v_x[(m+1)%3] or v_x[(m+1)%3] is a bfs parent of v_x[m], then we are in case 5.4
 				//use portal edges here
+				//portal edge is either v_x[m], v_x[(m+2)%3] or v_x[(m+1)%3], v_x[(m+2)%3]
 				printf("it's either triangle %d or %d for next recursive call\n", v_x_mirror[(m+1)%3], v_x_mirror[(m+2)%3]);
 				printf("we have one subproblem for sp %d: bichromatic\n", sp);
-				/*int flag = 0;
-				if (t->face_tripod_assign[v_x_mirror[(m+1)%3]] == -1){
-					for (int i = 0; i <= 2; i+=2){ //here there should always be exactly two portals edges, hence the i < 2
-						//look at portals array in chunks of 2
-						//if ((portals[i] == b->sim[t->face_tripod_assign[v_x_mirror[(m+1)%3]]][0] && portals[i+1] == b->sim[t->face_tripod_assign[v_x_mirror[(m+1)%3]]][1]) || (portals[i] == b->sim[t->face_tripod_assign[v_x_mirror[(m+1)%3]]][1] && portals[i+1] == b->sim[t->face_tripod_assign[v_x_mirror[(m+1)%3]]][2]) || (portals[i] == b->sim[t->face_tripod_assign[v_x_mirror[(m+1)%3]]][2] && portals[i+1] == b->sim[t->face_tripod_assign[v_x_mirror[(m+1)%3]]][0])){
-						if (portals[i] == b->sim[t->face_tripod_assign[v_x_mirror[(m+1)%3]]][0]){ //this if statement needs work
-							printf("bichromatic subproblem for sp %d will be on faces %d, %d\n", sp, f2, v_x_mirror[(m+1)%3]);
-							//add portal info to t->portals
-							//for f2 we want the edge whose two endpoints are coloured with the two parent colours
-							//for v_x_mirror we want the shared edge between the most recent sp and v_x_mirror
-							bichromatic_tripod( b, r, t, f2, v_x_mirror[(m+1)%3]);
-							flag = 1;
-							break;
+
+				//next triangle for our subproblem shouldn't share an edge with the previous portal edge
+				//but it should be an edge of the sperner triangle
+				//look through sim at v_x_mirror[(m+1)%3]
+				//if the v_x_mirror[(m+1)%3] triangle has the portal edge as one of its edges, then it's not the right one
+				/*int m_one_mod_three = 1;
+				for (i = 0; i < 3; i++){
+					for (j = 0; j < 3; j++){
+						if (b->sim[v_x_mirror[(m+1)%3]][i] == portals[j][0]){
+							for (int k = 0; k < 3; k++){
+								if (b->sim[v_x_mirror[(m+1)%3]][k] == portals[j][1]){ //if we found the portal edge
+									//pick the other triangle
+									m_one_mod_three = 0;
+								}
+							}
 						}
 					}
-					if (!flag){
-						printf("bichromatic subproblem for sp %d will be on faces %d, %d\n", sp, f2, v_x_mirror[(m+2)%3]);
-						//add portal info to t->portals
-						//for f2 we want the edge whose two endpoints are coloured with the two parent colours
-						//for v_x_mirror we want the shared edge between the most recent sp and v_x_mirror
-						bichromatic_tripod( b, r, t, f2, v_x_mirror[(m+2)%3]);
-					}
-				}*/
+				} use m_one_mod_three to pick correct triangle */
+
 				//problem here. we're not always picking the right mirror triangle. hopefully the above ^ is the solution
 				if (t->face_tripod_assign[v_x_mirror[(m+1)%3]] == -1){
 					printf("bichromatic subproblem for sp %d will be on faces %d, %d\n", sp, f2, v_x_mirror[(m+1)%3]);
@@ -544,6 +645,9 @@ void bichromatic_decompose(struct bfs_struct* b, struct rmq_struct* r, struct tr
 					portal_helper_op(b, t, sp, 0, portals, f2);
 					portal_helper_mirror(b, t, sp, 1, v_x_mirror[(m+1)%3]);
 					portal_helper_empty(t, 2);
+					less_intrusive_portal_helper_op(b, t, less_intrusive_portals, f2, 0); //new
+					less_intrusive_portal_helper_mirror(b, t, sp, v_x_mirror[(m+1)%3], 1); //new
+					less_intrusive_portal_helper_empty(t, 2); //new
 					portal_print(t);
 					bichromatic_tripod( b, r, t, f2, v_x_mirror[(m+1)%3]);
 				}
@@ -553,6 +657,9 @@ void bichromatic_decompose(struct bfs_struct* b, struct rmq_struct* r, struct tr
 					portal_helper_op(b, t, sp, 0, portals, f2);
 					portal_helper_mirror(b, t, sp, 1, v_x_mirror[(m+2)%3]);
 					portal_helper_empty(t, 2);
+					less_intrusive_portal_helper_op(b, t, less_intrusive_portals, f2, 0); //new
+					less_intrusive_portal_helper_mirror(b, t, sp, v_x_mirror[(m+2)%3], 1); //new
+					less_intrusive_portal_helper_empty(t, 2); //new
 					portal_print(t);
 					bichromatic_tripod( b, r, t, f2, v_x_mirror[(m+2)%3]);
 				}
@@ -568,6 +675,9 @@ void bichromatic_decompose(struct bfs_struct* b, struct rmq_struct* r, struct tr
 						portal_helper_mirror(b, t, sp, 0, v_x_mirror[m]);
 						portal_helper_empty(t, 1);
 						portal_helper_empty(t, 2);
+						less_intrusive_portal_helper_mirror(b, t, sp, v_x_mirror[m], 0); //new
+						less_intrusive_portal_helper_empty(t, 1); //new
+						less_intrusive_portal_helper_empty(t, 2); //new
 						portal_print(t);
 						monochromatic_tripod( b, r, t, v_x_mirror[m]);
 					}
@@ -583,6 +693,9 @@ void bichromatic_decompose(struct bfs_struct* b, struct rmq_struct* r, struct tr
 					portal_helper_mirror(b, t, sp, 0, v_x_mirror[m]);
 					portal_helper_empty(t, 1);
 					portal_helper_empty(t, 2);
+					less_intrusive_portal_helper_mirror(b, t, sp, v_x_mirror[m], 0); //new
+					less_intrusive_portal_helper_empty(t, 1); //new
+					less_intrusive_portal_helper_empty(t, 2); //new
 					portal_print(t);
 					monochromatic_tripod( b, r, t, v_x_mirror[m]);
 				}
@@ -597,6 +710,9 @@ void bichromatic_decompose(struct bfs_struct* b, struct rmq_struct* r, struct tr
 						portal_helper_op(b, t, sp, 0, portals, f2);
 						portal_helper_mirror(b, t, sp, 1, v_x_mirror[(m+2)%3]);
 						portal_helper_empty(t, 2);
+						less_intrusive_portal_helper_op(b, t, less_intrusive_portals, f2, 0); //new
+						less_intrusive_portal_helper_mirror(b, t, sp, v_x_mirror[(m+2)%3], 1); //new
+						less_intrusive_portal_helper_empty(t, 2); //new
 						portal_print(t);
 						bichromatic_tripod( b, r, t, f2, v_x_mirror[(m+2)%3]);
 					}
@@ -608,6 +724,9 @@ void bichromatic_decompose(struct bfs_struct* b, struct rmq_struct* r, struct tr
 						portal_helper_op(b, t, sp, 0, portals, f2);
 						portal_helper_mirror(b, t, sp, 1, v_x_mirror[(m+1)%3]);
 						portal_helper_empty(t, 2);
+						less_intrusive_portal_helper_op(b, t, less_intrusive_portals, f2, 0); //new
+						less_intrusive_portal_helper_mirror(b, t, sp, v_x_mirror[(m+1)%3], 1); //new
+						less_intrusive_portal_helper_empty(t, 2); //new
 						portal_print(t);
 						bichromatic_tripod( b, r, t, f2, v_x_mirror[(m+1)%3]);
 					}
@@ -687,6 +806,7 @@ void monochromatic_decompose(struct bfs_struct* b, struct rmq_struct* r, struct 
 	int v_x_l[3];
 	int v_x_r[3];
 	int portals[3][2];
+	int less_intrusive_portals[3][2];
 	for (int i = 0; i < 3; i++){
 		v_x[i] = t->v_x[i];
 		v_x_next[i] = t->v_x_next[i];
@@ -695,6 +815,8 @@ void monochromatic_decompose(struct bfs_struct* b, struct rmq_struct* r, struct 
 		(b->pin[v_x[i]] == 0) ? (v_x_r[i] = b->il[v_x[i]][(b->n[v_x[i]])-1]) : (v_x_r[i] = b->il[v_x[i]][b->pin[v_x[i]]-1]);
 		portals[i][0] = t->portals[i][0];
 		portals[i][1] = t->portals[i][1];
+		less_intrusive_portals[i][0] = t->less_intrusive_portals[i][0];
+		less_intrusive_portals[i][1] = t->less_intrusive_portals[i][1];
 	}
 
 	int k;
@@ -713,6 +835,9 @@ void monochromatic_decompose(struct bfs_struct* b, struct rmq_struct* r, struct 
 			portal_helper_r_l(t, 0, v_x[k], v_x_next[k]);
 			portal_helper_mirror(b, t, sp, 1, v_x_mirror[(k+2)%3]);
 			portal_helper_empty(t, 2);
+			less_intrusive_portal_helper_r_l(t, v_x_r[k], v_x[k], 0); //new
+			less_intrusive_portal_helper_mirror(b, t, sp, v_x_mirror[(k+2)%3], 1); //new
+			less_intrusive_portal_helper_empty(t, 2); //new
 			portal_print(t);
 			bichromatic_tripod( b, r, t, v_x_r[k], v_x_mirror[(k+2)%3]);
 			printf("second bichromatic subproblem for sp %d will be on faces %d, %d\n", sp, v_x_l[k], v_x_mirror[k]);
@@ -720,6 +845,9 @@ void monochromatic_decompose(struct bfs_struct* b, struct rmq_struct* r, struct 
 			portal_helper_r_l(t, 0, v_x[k], v_x_next[k]);
 			portal_helper_mirror(b, t, sp, 1, v_x_mirror[k]);
 			portal_helper_empty(t, 2);
+			less_intrusive_portal_helper_r_l(t, v_x_l[k], v_x[k], 0); //new
+			less_intrusive_portal_helper_mirror(b, t, sp, v_x_mirror[k], 1); //new
+			less_intrusive_portal_helper_empty(t, 2); //new
 			portal_print(t);
 			bichromatic_tripod( b, r, t, v_x_l[k], v_x_mirror[k]);
 		}
@@ -731,6 +859,9 @@ void monochromatic_decompose(struct bfs_struct* b, struct rmq_struct* r, struct 
 			portal_helper_mirror(b, t, sp, 0, v_x_mirror[(k+2)%3]);
 			portal_helper_mirror(b, t, sp, 1, v_x_mirror[k]);
 			portal_helper_empty(t, 2);
+			less_intrusive_portal_helper_mirror(b, t, sp, v_x_mirror[(k+2)%3], 0); //new
+			less_intrusive_portal_helper_mirror(b, t, sp, v_x_mirror[k], 1); //new
+			less_intrusive_portal_helper_empty(t, 2); //new
 			portal_print(t);
 			bichromatic_tripod(b, r, t, v_x_mirror[(k+2)%3], v_x_mirror[k]);
 		}
@@ -755,6 +886,9 @@ void monochromatic_decompose(struct bfs_struct* b, struct rmq_struct* r, struct 
 					portal_helper_mirror(b, t, sp, 0, v_x_mirror[(m+1)%3]);
 					portal_helper_empty(t, 1);
 					portal_helper_empty(t, 2);
+					less_intrusive_portal_helper_mirror(b, t, sp, v_x_mirror[(m+1)%3], 0); //new
+					less_intrusive_portal_helper_empty(t, 1); //new
+					less_intrusive_portal_helper_empty(t, 2); //new
 					portal_print(t);
 					monochromatic_tripod( b, r, t, v_x_mirror[(m+1)%3]);
 				}
@@ -770,6 +904,9 @@ void monochromatic_decompose(struct bfs_struct* b, struct rmq_struct* r, struct 
 					portal_helper_mirror(b, t, sp, 0, v_x_mirror[(m+2)%3]);
 					portal_helper_empty(t, 1);
 					portal_helper_empty(t, 2);
+					less_intrusive_portal_helper_mirror(b, t, sp, v_x_mirror[(m+2)%3], 0); //new
+					less_intrusive_portal_helper_empty(t, 1); //new
+					less_intrusive_portal_helper_empty(t, 2); //new
 					portal_print(t);
 					monochromatic_tripod( b, r, t, v_x_mirror[(m+2)%3]);
 				}
@@ -794,6 +931,9 @@ void monochromatic_decompose(struct bfs_struct* b, struct rmq_struct* r, struct 
 					portal_helper_mirror(b, t, sp, 0, v_x_mirror[(p+1)%3]);
 					portal_helper_empty(t, 1);
 					portal_helper_empty(t, 2);
+					less_intrusive_portal_helper_mirror(b, t, sp, v_x_mirror[(p+1)%3], 0); //new
+					less_intrusive_portal_helper_empty(t, 1); //new
+					less_intrusive_portal_helper_empty(t, 2); //new
 					portal_print(t);
 					monochromatic_tripod( b, r, t, v_x_mirror[(p+1)%3]);
 				}
@@ -803,6 +943,9 @@ void monochromatic_decompose(struct bfs_struct* b, struct rmq_struct* r, struct 
 					portal_helper_mirror(b, t, sp, 0, v_x_mirror[(p+2)%3]);
 					portal_helper_empty(t, 1);
 					portal_helper_empty(t, 2);
+					less_intrusive_portal_helper_mirror(b, t, sp, v_x_mirror[(p+2)%3], 0); //new
+					less_intrusive_portal_helper_empty(t, 1); //new
+					less_intrusive_portal_helper_empty(t, 2); //new
 					portal_print(t);
 					monochromatic_tripod( b, r, t, v_x_mirror[(p+2)%3]);
 				}
