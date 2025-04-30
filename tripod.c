@@ -661,9 +661,11 @@ void bichromatic_decompose(struct bfs_struct* b, struct rmq_struct* r, struct tr
 		//the vertices of the crotch of sp are one of exactly two colours
 
 		int m = -1;
+		int triangle_of_m = -1;
 		for (int j = 0; j < 3; j++){
 			if (less_intrusive_portals_with_indices[j][0] == sp){
 				m = less_intrusive_portals_with_indices[j][1];
+				triangle_of_m = less_intrusive_portals_with_indices[j][0];
 				break;
 			}
 		}
@@ -671,11 +673,10 @@ void bichromatic_decompose(struct bfs_struct* b, struct rmq_struct* r, struct tr
 			printf("m is -1. exiting...\n");
 			exit(0);
 		}
-		
-		//m is given to us by the portal edge, this m could be "wrong". use portal edge instead
-		/*for (m = 0; m < 3 && t->vertex_tripod_assign[v_x[m]] != t->vertex_tripod_assign[v_x[(m+1)%3]]; m++){
-			//this loop checks who is of the same colour
-		}*/
+		if (triangle_of_m == -1){
+			printf("triangle_of_m is -1. exiting...\n");
+			exit(0);
+		}
 
 		if (m < 3){ //this should always be the case
 			
@@ -683,7 +684,9 @@ void bichromatic_decompose(struct bfs_struct* b, struct rmq_struct* r, struct tr
 			//v_x_mirror[m]'s third vertex is either the same colour as v_x[m] and v_x[(m+1)%3], or is uncoloured
 			
 			if ((b->bt[v_x[(m+1)%3]] == v_x[(m+2)%3] || b->bt[v_x[(m+2)%3]] == v_x[(m+1)%3]) || (b->bt[v_x[(m+2)%3]] == v_x[m] || b->bt[v_x[m]] == v_x[(m+2)%3]) && (f1 != f2)){
-				//if there is a parent-child relation, then we are in case 5.4
+				//if there is a parent-child relation, then we are in the first case of 5.4, where we have ancestry
+				//although this second case of 5.4 is really just a case 5.3, with no monochromatic problem on which to recurse
+				//second case of 5.4 is dealt with later
 				//use portal edges here
 				printf("it's either triangle %d or %d for next recursive call\n", v_x_mirror[(m+1)%3], v_x_mirror[(m+2)%3]);
 				printf("we have one subproblem for sp %d: bichromatic\n", sp);
@@ -722,75 +725,134 @@ void bichromatic_decompose(struct bfs_struct* b, struct rmq_struct* r, struct tr
 			}
 			//otherwise, we are in case 5.3 or 5.5
 			else if (f1 == f2){
-				if (b->bt[v_x[(m+1)%3]] != v_x[m] && b->bt[v_x[m]] != v_x[(m+1)%3]){ //are we crossing a coloured edge? if not:
-					if (t->face_tripod_assign[v_x_mirror[m]] == -1){ //are we about to select a sp on which to recurse? if not:
-						//if f1 == f2 then we are in case 5.5
-						printf("we have one subproblem for sp %d: monochromatic\n", sp);
-						printf("monochromatic subproblem for sp %d will be on face %d\n", sp, v_x_mirror[m]);
-						//add portal info to t->portals
-						portal_helper_mirror(b, t, sp, 0, v_x_mirror[m]);
-						portal_helper_empty(t, 1);
-						portal_helper_empty(t, 2);
-						less_intrusive_portal_helper_mirror(b, t, sp, v_x_mirror[m], 0); //new
-						less_intrusive_portal_helper_empty(t, 1); //new
-						less_intrusive_portal_helper_empty(t, 2); //new
-						portal_print(t);
-						monochromatic_tripod( b, r, t, v_x_mirror[m]);
+				//if f1 == f2 then we are in case 5.5
+				//here we have two valid values of m for the same triangle
+				//find the second value of m:
+				int second_m = -1;
+				for (int j = 0; j < 3; j++){
+					if (less_intrusive_portals_with_indices[j][0] == sp && less_intrusive_portals_with_indices[j][1] != m){
+						second_m = less_intrusive_portals_with_indices[j][1];
+						break;
 					}
 				}
-			}
-			else {
-				//we are in case 5.3
-				//or we are in a specific case of 5.4 where our new sp is adjacent to a previous sp, and by extension has no parent-child relation
-				//for any coloured edge, either it's a tree edge or there's a sp on the other side
-				if (t->face_tripod_assign[v_x_mirror[m]] == -1){ //make sure monochromatic subproblem exists
-					printf("we have two subproblems for sp %d: monochromatic + bichromatic\n", sp);
-					printf("monochromatic subproblem for sp %d will be on face %d\n", sp, v_x_mirror[m]);
+				if (second_m == -1){
+					printf("second_m is -1. exiting...\n");
+					exit(0);
+				}
+				if (second_m == m){
+					printf("second_m is m. exiting...\n");
+					exit(0);
+				}
+
+				int ell;
+
+				if (abs(m-second_m) == 1){
+					//m is the first one encountered in counter-clockwise order
+					ell = (m+2)%3;
+				}
+				else if (abs(m-second_m) == 2){
+					//second_m is the first one encountered in counter-clockwise order
+					ell = (m+1)%3;
+				}
+				else {
+					printf("abs(m-second_m) != 1 && abs(m-second_m) != 2. exiting...\n");
+					exit(0);
+				}
+
+				if (t->face_tripod_assign[v_x_mirror[ell]] == -1 && (b->bt[v_x[ell]] != v_x[(ell+1)%3] && b->bt[v_x[(ell+1)%3]] != v_x[ell])){
+					//if face to be selected doesn't already belong to a tripod AND there is no parent-child relation between vertices of edge whose other side we're about to recurse on
+					printf("we have one subproblem for sp %d: monochromatic\n", sp);
+					printf("monochromatic subproblem for sp %d will be on face %d\n", sp, v_x_mirror[ell]);
 					//add portal info to t->portals
-					portal_helper_mirror(b, t, sp, 0, v_x_mirror[m]);
+					portal_helper_mirror(b, t, sp, 0, v_x_mirror[ell]);
 					portal_helper_empty(t, 1);
 					portal_helper_empty(t, 2);
-					less_intrusive_portal_helper_mirror(b, t, sp, v_x_mirror[m], 0); //new
+					less_intrusive_portal_helper_mirror(b, t, sp, v_x_mirror[ell], 0); //new
 					less_intrusive_portal_helper_empty(t, 1); //new
 					less_intrusive_portal_helper_empty(t, 2); //new
 					portal_print(t);
-					monochromatic_tripod( b, r, t, v_x_mirror[m]);
+					monochromatic_tripod( b, r, t, v_x_mirror[ell]);
 				}
-				else {
-					printf("we have one subproblem for sp %d: bichromatic\n", sp);
-				}
-				//different cases here, depending on specific triangle orientation
-				if ((b->bt[v_x[(m+1)%3]] == v_x[(m+2)%3] || b->bt[v_x[(m+2)%3]] == v_x[(m+1)%3]) || t->face_tripod_assign[v_x_mirror[(m+1)%3]] > -1){
-					if (t->face_tripod_assign[v_x_mirror[(m+2)%3]] == -1){
-						printf("bichromatic subproblem for sp %d will be on faces %d, %d\n", sp, f2, v_x_mirror[(m+2)%3]);
+				//if face to be selected does already belong to a tripod, then there is nothing left on which to recurse
+
+			}
+			else {
+				//we are in case 5.3
+				//or we are in the second case of 5.4 where our new sp is adjacent to a previous sp, and by extension has no parent-child relation
+				//as noted above, this second case of 5.4 is really just a case 5.3, with no monochromatic problem on which to recurse
+				//for any coloured edge, either it's a tree edge or there's a sp on the other side
+
+				if (t->vertex_tripod_assign[b->sim[triangle_of_m][(m+1)%3]] == t->vertex_tripod_assign[b->sim[triangle_of_m][(m+2)%3]]){ //this is our monochromatic edge
+					if (t->face_tripod_assign[v_x_mirror[(m+1)%3]] == -1){ //if a monochromatic subproblem exists
+						printf("we have two subproblems for sp %d: monochromatic + bichromatic\n", sp);
+						printf("monochromatic subproblem for sp %d will be on face %d\n", sp, v_x_mirror[(m+1)%3]);
 						//add portal info to t->portals
-						portal_helper_op(b, t, sp, 0, portals, f2);
-						portal_helper_mirror(b, t, sp, 1, v_x_mirror[(m+2)%3]);
+						portal_helper_mirror(b, t, sp, 0, v_x_mirror[(m+1)%3]);
+						portal_helper_empty(t, 1);
 						portal_helper_empty(t, 2);
-						less_intrusive_portal_helper_op(b, t, less_intrusive_portals, f2, 0); //new
-						less_intrusive_portal_helper_mirror(b, t, sp, v_x_mirror[(m+2)%3], 1); //new
+						less_intrusive_portal_helper_mirror(b, t, sp, v_x_mirror[(m+1)%3], 0); //new
+						less_intrusive_portal_helper_empty(t, 1); //new
 						less_intrusive_portal_helper_empty(t, 2); //new
 						portal_print(t);
-						bichromatic_tripod( b, r, t, f2, v_x_mirror[(m+2)%3]);
+						monochromatic_tripod( b, r, t, v_x_mirror[(m+1)%3]);
 					}
+					else {
+						printf("we have one subproblem for sp %d: bichromatic\n", sp);
+					}
+					//either way we have a bichromatic subproblem which is:
+					printf("bichromatic subproblem for sp %d will be on faces %d, %d\n", sp, f2, v_x_mirror[(m+2)%3]);
+					//add portal info to t->portals
+					portal_helper_op(b, t, sp, 0, portals, f2);
+					portal_helper_mirror(b, t, sp, 1, v_x_mirror[(m+2)%3]);
+					portal_helper_empty(t, 2);
+					less_intrusive_portal_helper_op(b, t, less_intrusive_portals, f2, 0); //new
+					less_intrusive_portal_helper_mirror(b, t, sp, v_x_mirror[(m+2)%3], 1); //new
+					less_intrusive_portal_helper_empty(t, 2); //new
+					portal_print(t);
+					bichromatic_tripod( b, r, t, f2, v_x_mirror[(m+2)%3]);
 				}
-				else {
-					if (t->face_tripod_assign[v_x_mirror[(m+1)%3]] == -1){
-						printf("bichromatic subproblem for sp %d will be on faces %d, %d\n", sp, f2, v_x_mirror[(m+1)%3]);
+				else if (t->vertex_tripod_assign[b->sim[triangle_of_m][(m+2)%3]] == t->vertex_tripod_assign[b->sim[triangle_of_m][m]]){ //this is our monochromatic edge
+					if (t->face_tripod_assign[v_x_mirror[(m+2)%3]] == -1){ //if a monochromatic subproblem exists
+						printf("we have two subproblems for sp %d: monochromatic + bichromatic\n", sp);
+						printf("monochromatic subproblem for sp %d will be on face %d\n", sp, v_x_mirror[(m+2)%3]);
 						//add portal info to t->portals
-						portal_helper_op(b, t, sp, 0, portals, f2);
-						portal_helper_mirror(b, t, sp, 1, v_x_mirror[(m+1)%3]);
+						portal_helper_mirror(b, t, sp, 0, v_x_mirror[(m+2)%3]);
+						portal_helper_empty(t, 1);
 						portal_helper_empty(t, 2);
-						less_intrusive_portal_helper_op(b, t, less_intrusive_portals, f2, 0); //new
-						less_intrusive_portal_helper_mirror(b, t, sp, v_x_mirror[(m+1)%3], 1); //new
+						less_intrusive_portal_helper_mirror(b, t, sp, v_x_mirror[(m+2)%3], 0); //new
+						less_intrusive_portal_helper_empty(t, 1); //new
 						less_intrusive_portal_helper_empty(t, 2); //new
 						portal_print(t);
-						bichromatic_tripod( b, r, t, f2, v_x_mirror[(m+1)%3]);
+						monochromatic_tripod( b, r, t, v_x_mirror[(m+2)%3]);
 					}
+					else {
+						printf("we have one subproblem for sp %d: bichromatic\n", sp);
+					}
+					//either way we have a bichromatic subproblem which is:
+					printf("bichromatic subproblem for sp %d will be on faces %d, %d\n", sp, f2, v_x_mirror[(m+1)%3]);
+					//add portal info to t->portals
+					portal_helper_op(b, t, sp, 0, portals, f2);
+					portal_helper_mirror(b, t, sp, 1, v_x_mirror[(m+1)%3]);
+					portal_helper_empty(t, 2);
+					less_intrusive_portal_helper_op(b, t, less_intrusive_portals, f2, 0); //new
+					less_intrusive_portal_helper_mirror(b, t, sp, v_x_mirror[(m+1)%3], 1); //new
+					less_intrusive_portal_helper_empty(t, 2); //new
+					portal_print(t);
+					bichromatic_tripod( b, r, t, f2, v_x_mirror[(m+1)%3]);
+				}
+				else {
+					printf("something's wrong with our case 5.3 in terms of vertex colouring. exiting...\n");
+					printf("t->vertex_tripod_assign[b->sim[triangle_of_m][m]] = %d\n", t->vertex_tripod_assign[b->sim[triangle_of_m][m]]);
+					printf("t->vertex_tripod_assign[b->sim[triangle_of_m][(m+1) mod 3]] = %d\n", t->vertex_tripod_assign[b->sim[triangle_of_m][(m+1)%3]]);
+					printf("t->vertex_tripod_assign[b->sim[triangle_of_m][(m+2) mod 3]] = %d\n", t->vertex_tripod_assign[b->sim[triangle_of_m][(m+2)%3]]);
+					printf("t->vertex_tripod_assign[b->sim[sp][m]] = %d\n", t->vertex_tripod_assign[b->sim[sp][m]]);
+					printf("t->vertex_tripod_assign[b->sim[sp][(m+1) mod 3]] = %d\n", t->vertex_tripod_assign[b->sim[sp][(m+1)%3]]);
+					printf("t->vertex_tripod_assign[b->sim[sp][(m+2) mod 3]] = %d\n", t->vertex_tripod_assign[b->sim[sp][(m+2)%3]]);
+					exit(0);
 				}
 			}
 		}
-		else { // if m == 3
+		else { //if m == 3
 			printf("m == 3. this cannot happen. exiting...\n");
 			printf("actual value of m is %d\n", m);
 			exit(0);
@@ -1030,8 +1092,10 @@ void store_tripod(struct bfs_struct* b, struct tripod_decomposition_struct* t, i
 			u = b->bt[u];
 			t->v_x_next[i] = u;
 		}
+		//t->vertex_tripod_assign[u] is color of parent 1 of possibly 3
 		t->v_x_mirror[i] = b->tri[sp][i];
 	}
+	//maybe store parents in t->tripod_assign_order adjacency list here
 }
 
 void tprint(struct tripod_decomposition_struct* t){
@@ -1077,7 +1141,12 @@ int three_tree_test(struct bfs_struct* b, struct tripod_decomposition_struct* t,
 	return 1;
 }
 
+//adjacency list of t->tripod_assign_order, with the three parents
+//for each tripod, what are its parent tripods
+//then, three_tree_test_pt2
+
 int three_tree_test_pt2(struct bfs_struct* b, struct tripod_decomposition_struct* t){
+	//for each edge, do its endpoints belong to the same tripod, or one is the parent of the other: then all good
 	return 1;
 }
 //for each vertex v of sp adjacent to another tripod
@@ -1087,7 +1156,7 @@ int three_tree_test_pt2(struct bfs_struct* b, struct tripod_decomposition_struct
 //everyone has at most three parents
 //something else to check (with a new function)
 //for each vertex make sure the parents are okay, and that a "parent" is not in fact a "grand-parent"
-//use the three_tree_test function to keep a list of vertices and their parents (like an ajdacency list but for ancestry)
+//use the three_tree_test function to keep a list of tripods and their parents (like an ajdacency list but for ancestry)
 //then, at the end of the program, when the recursion terminates, call the new function
 //this new function is similar to three_tree_test, but it should catch an extra case where v has a parent beyond the boundary of its three defining tripods
 //so, for each vertex v, look at the parent of tripod v belongs to
