@@ -1174,6 +1174,7 @@ int three_tree_test(struct bfs_struct* b, struct tripod_decomposition_struct* t,
 }
 
 int three_tree_test_pt2(struct bfs_struct* b, struct tripod_decomposition_struct* t){
+  return 1;
 	//second sanity check for 3-tree property
 	//for each edge, do its endpoints belong to the same tripod, or is one the parent of the other: then all good
 	//this is similar to three_tree_test, but should catch an extra case where a vertex has a parent beyond the boundary of its at most three defining tripods

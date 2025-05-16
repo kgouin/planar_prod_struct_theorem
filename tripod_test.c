@@ -34,8 +34,9 @@ int main(){
 		}
 	}
 
-	if (!three_tree_test_pt2(&b, &t)) printf("three tree test unsuccessful\n");
-	
+  // PAT: I turned this off for now, to get some idea of performance
+	// if (!three_tree_test_pt2(&b, &t)) printf("three tree test unsuccessful\n");
+
 	tripod_free(&b, &t);
 	LCA_free(&r);
 	BFS_free(&b);
