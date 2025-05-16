@@ -1,5 +1,14 @@
 #!/bin/bash
-clear
-make
-./tripod_exec > new_output.txt
-diff original_output.txt new_output.txt
+for i in {1..10};
+do
+    python3 make_input.py 10000
+    echo -n "*"
+    output=$(./tripod_exec)
+    echo -n -e "\r"$i
+    if echo "$output" | grep -q "error|unsuccessful";
+    then
+        echo "error found"
+        break
+    fi
+done
+echo
