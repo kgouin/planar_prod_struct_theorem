@@ -19,10 +19,10 @@ bfs : bfs.h
 	gcc -c bfs.c
 
 tripod : rmq.h lca.h bfs.h tripod.h
-	gcc -c tripod.c
+	gcc -c -g tripod.c
 
 tripod_exec : rmq.h lca.h bfs.h tripod.h tripod tripod_test.c
-	gcc -g -o tripod_exec rmq.c lca.c bfs.c tripod.c tripod_test.c -lm
+	gcc -g -pg -o tripod_exec rmq.c lca.c bfs.c tripod.c tripod_test.c -lm
 
 profile.txt : rmq.h rmq rmq_test.c
 	gcc -g -pg -o rmq_prof rmq.c rmq_test.c -lm

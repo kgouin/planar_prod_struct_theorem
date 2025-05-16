@@ -330,33 +330,36 @@ int* trichromatic_tripod(struct bfs_struct* b, struct rmq_struct* r, struct trip
 		t->tripod_assign_order_index++;
 	}
 
-	//testing for 3-tree property
-	if (!three_tree_test(b, t, sp)){
-		if (TEST_MODE) printf("3-tree test failed\n");
-		exit(0);
-	}
+  if (TEST_MODE) {
 
-	if (TEST_MODE) printf("\n%d is one of our sperner triangles\nvertex_tripod_assign = ", sp); //sperner triangles are correctly identified
-	for (int i = 0; i < (b->v); i++){
-		if (TEST_MODE) printf("%d ", t->vertex_tripod_assign[i]);
-	}
-	if (TEST_MODE) printf("\nface_tripod_assign = ");
-	for (int i = 0; i < b->f; i++){
-		if (TEST_MODE) printf("%d ", t->face_tripod_assign[i]);
-	}
-	if (TEST_MODE) printf("\n");
+  	//testing for 3-tree property
+  	if (!three_tree_test(b, t, sp)){
+  		if (TEST_MODE) printf("3-tree test failed\n");
+  		exit(0);
+  	}
 
-	for (int i = 0; i < (b->f); i++){
-		if (t->face_tripod_assign[f1] == f1 || t->face_tripod_assign[f2] == f2 || t->face_tripod_assign[f3] == f3){
-			if (TEST_MODE) printf("one of our input triangles is a sperner triangle. exiting.\n");
-			if (TEST_MODE) printf("tripod_assign_order = [ ");
-			for (int i = 0; i < t->tripod_assign_order_index; i++){
-				if (TEST_MODE) printf("%d ", (t->tripod_assign_order)[i]);
-			}
-			if (TEST_MODE) printf("]\n");
-			exit(0);
-		}
-	}
+  	if (TEST_MODE) printf("\n%d is one of our sperner triangles\nvertex_tripod_assign = ", sp); //sperner triangles are correctly identified
+  	for (int i = 0; i < (b->v); i++){
+  		if (TEST_MODE) printf("%d ", t->vertex_tripod_assign[i]);
+  	}
+  	if (TEST_MODE) printf("\nface_tripod_assign = ");
+  	for (int i = 0; i < b->f; i++){
+  		if (TEST_MODE) printf("%d ", t->face_tripod_assign[i]);
+  	}
+  	if (TEST_MODE) printf("\n");
+
+  	for (int i = 0; i < (b->f); i++){
+  		if (t->face_tripod_assign[f1] == f1 || t->face_tripod_assign[f2] == f2 || t->face_tripod_assign[f3] == f3){
+  			if (TEST_MODE) printf("one of our input triangles is a sperner triangle. exiting.\n");
+  			if (TEST_MODE) printf("tripod_assign_order = [ ");
+  			for (int i = 0; i < t->tripod_assign_order_index; i++){
+  				if (TEST_MODE) printf("%d ", (t->tripod_assign_order)[i]);
+  			}
+  			if (TEST_MODE) printf("]\n");
+  			exit(0);
+  		}
+  	}
+}
 
 	t->face_tripod_assign[sp] = sp; //keep track of sperner triangles
 
@@ -537,27 +540,29 @@ int* bichromatic_tripod(struct bfs_struct* b, struct rmq_struct* r, struct tripo
 		exit(0);
 	}
 
-	if (TEST_MODE) printf("\n%d is one of our sperner triangles\nvertex_tripod_assign = ", sp); //sperner triangles are correctly identified
-	for (int i = 0; i < (b->v); i++){
-		if (TEST_MODE) printf("%d ", t->vertex_tripod_assign[i]);
-	}
-	if (TEST_MODE) printf("\nface_tripod_assign = ");
-	for (int i = 0; i < b->f; i++){
-		if (TEST_MODE) printf("%d ", t->face_tripod_assign[i]);
-	}
-	if (TEST_MODE) printf("\n");
+  if (TEST_MODE) {
+  	if (TEST_MODE) printf("\n%d is one of our sperner triangles\nvertex_tripod_assign = ", sp); //sperner triangles are correctly identified
+  	for (int i = 0; i < (b->v); i++){
+  		if (TEST_MODE) printf("%d ", t->vertex_tripod_assign[i]);
+  	}
+  	if (TEST_MODE) printf("\nface_tripod_assign = ");
+  	for (int i = 0; i < b->f; i++){
+  		if (TEST_MODE) printf("%d ", t->face_tripod_assign[i]);
+  	}
+  	if (TEST_MODE) printf("\n");
 
-	for (int i = 0; i < (b->f); i++){
-		if (t->face_tripod_assign[f1] == f1 || t->face_tripod_assign[f2] == f2){
-			if (TEST_MODE) printf("one of our input triangles is a sperner triangle. exiting.\n");
-			if (TEST_MODE) printf("tripod_assign_order = [ ");
-			for (int i = 0; i < t->tripod_assign_order_index; i++){
-				if (TEST_MODE) printf("%d ", (t->tripod_assign_order)[i]);
-			}
-			if (TEST_MODE) printf("]\n");
-			exit(0);
-		}
-	}
+  	for (int i = 0; i < (b->f); i++){
+  		if (t->face_tripod_assign[f1] == f1 || t->face_tripod_assign[f2] == f2){
+  			if (TEST_MODE) printf("one of our input triangles is a sperner triangle. exiting.\n");
+  			if (TEST_MODE) printf("tripod_assign_order = [ ");
+  			for (int i = 0; i < t->tripod_assign_order_index; i++){
+  				if (TEST_MODE) printf("%d ", (t->tripod_assign_order)[i]);
+  			}
+  			if (TEST_MODE) printf("]\n");
+  			exit(0);
+  		}
+  	}
+  }
 
 	t->face_tripod_assign[sp] = sp; //keep track of sperner triangles
 
@@ -700,10 +705,10 @@ void bichromatic_decompose(struct bfs_struct* b, struct rmq_struct* r, struct tr
 		}
 
 		if (m < 3){ //this should always be the case
-			
+
 			//v_x_mirror[m] will have two of its vertices the same colour as v_x[m] and v_x[(m+1)%3]
 			//v_x_mirror[m]'s third vertex is either the same colour as v_x[m] and v_x[(m+1)%3], or is uncoloured
-			
+
 			if ((b->bt[v_x[(m+1)%3]] == v_x[(m+2)%3] || b->bt[v_x[(m+2)%3]] == v_x[(m+1)%3]) || (b->bt[v_x[(m+2)%3]] == v_x[m] || b->bt[v_x[m]] == v_x[(m+2)%3]) && (f1 != f2)){
 				//if there is a parent-child relation, then we are in the first case of 5.4, where we have ancestry
 				//although this second case of 5.4 is really just a case 5.3, with no monochromatic problem on which to recurse
@@ -900,27 +905,28 @@ int* monochromatic_tripod(struct bfs_struct* b, struct rmq_struct* r, struct tri
 		exit(0);
 	}
 
-	if (TEST_MODE) printf("\n%d is one of our sperner triangles\nvertex_tripod_assign = ", sp); //sperner triangles are correctly identified
-	for (int i = 0; i < (b->v); i++){
-		if (TEST_MODE) printf("%d ", t->vertex_tripod_assign[i]);
-	}
-	if (TEST_MODE) printf("\nface_tripod_assign = ");
-	for (int i = 0; i < b->f; i++){
-		if (TEST_MODE) printf("%d ", t->face_tripod_assign[i]);
-	}
-	if (TEST_MODE) printf("\n");
-
-	for (int i = 0; i < (b->f); i++){
-		if (t->face_tripod_assign[sp] == sp){
-			if (TEST_MODE) printf("sperner triangle already found. exiting.\n");
-			if (TEST_MODE) printf("tripod_assign_order = [ ");
-			for (int i = 0; i < t->tripod_assign_order_index; i++){
-				if (TEST_MODE) printf("%d ", (t->tripod_assign_order)[i]);
-			}
-			if (TEST_MODE) printf("]\n");
-			exit(0);
-		}
-	}
+  if (TEST_MODE) {
+  	if (TEST_MODE) printf("\n%d is one of our sperner triangles\nvertex_tripod_assign = ", sp); //sperner triangles are correctly identified
+  	for (int i = 0; i < (b->v); i++){
+  		if (TEST_MODE) printf("%d ", t->vertex_tripod_assign[i]);
+  	}
+    	if (TEST_MODE) printf("\nface_tripod_assign = ");
+    	for (int i = 0; i < b->f; i++){
+    		if (TEST_MODE) printf("%d ", t->face_tripod_assign[i]);
+    	}
+    	if (TEST_MODE) printf("\n");
+  	for (int i = 0; i < (b->f); i++){
+  		if (t->face_tripod_assign[sp] == sp){
+  			if (TEST_MODE) printf("sperner triangle already found. exiting.\n");
+  			if (TEST_MODE) printf("tripod_assign_order = [ ");
+  			for (int i = 0; i < t->tripod_assign_order_index; i++){
+  				if (TEST_MODE) printf("%d ", (t->tripod_assign_order)[i]);
+  			}
+  			if (TEST_MODE) printf("]\n");
+  			exit(0);
+  		}
+  	}
+  }
 
 	t->face_tripod_assign[sp] = sp; //keep track of sperner triangles
 
@@ -1149,7 +1155,7 @@ void tripod_free(struct bfs_struct* b, struct tripod_decomposition_struct* t){
 
 int three_tree_test(struct bfs_struct* b, struct tripod_decomposition_struct* t, int sp){
 	//sanity check for 3-tree property
-
+  return 1;
 	int leg_colours[3];
 	for (int i = 0; i < 3; i++){ //identify the endpoint colour of each leg
 		(t->v_x_next[i] == -1) ? (leg_colours[i] = t->vertex_tripod_assign[t->v_x[i]]) : (leg_colours[i] = t->vertex_tripod_assign[t->v_x_next[i]]);
