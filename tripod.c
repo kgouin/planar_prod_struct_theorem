@@ -312,6 +312,10 @@ int* trichromatic_tripod(struct bfs_struct* b, struct rmq_struct* r, struct trip
 			if (LCA_query(r, f1, f2) == LCA_query(r, f1, f3)) sp = LCA_query(r, f2, f3);
 			else if (LCA_query(r, f1, f2) == LCA_query(r, f2, f3)) sp = LCA_query(r, f1, f3);
 			else if (LCA_query(r, f1, f3) == LCA_query(r, f2, f3)) sp = LCA_query(r, f1, f2);
+			else { //new else statement to silence a warning for potential uninitialized sp
+				if (TEST_MODE) printf("something wrong with sp. exiting...\n");
+				exit(0);
+			}
 		}
 	}
 	else { //if two of the three input triangles are the same
@@ -709,7 +713,7 @@ void bichromatic_decompose(struct bfs_struct* b, struct rmq_struct* r, struct tr
 			//v_x_mirror[m] will have two of its vertices the same colour as v_x[m] and v_x[(m+1)%3]
 			//v_x_mirror[m]'s third vertex is either the same colour as v_x[m] and v_x[(m+1)%3], or is uncoloured
 
-			if ((b->bt[v_x[(m+1)%3]] == v_x[(m+2)%3] || b->bt[v_x[(m+2)%3]] == v_x[(m+1)%3]) || (b->bt[v_x[(m+2)%3]] == v_x[m] || b->bt[v_x[m]] == v_x[(m+2)%3]) && (f1 != f2)){
+			if (((b->bt[v_x[(m+1)%3]] == v_x[(m+2)%3] || b->bt[v_x[(m+2)%3]] == v_x[(m+1)%3]) || (b->bt[v_x[(m+2)%3]] == v_x[m] || b->bt[v_x[m]] == v_x[(m+2)%3])) && (f1 != f2)){
 				//if there is a parent-child relation, then we are in the first case of 5.4, where we have ancestry
 				//although this second case of 5.4 is really just a case 5.3, with no monochromatic problem on which to recurse
 				//second case of 5.4 is dealt with later
@@ -1187,18 +1191,7 @@ int three_tree_test_pt2(struct bfs_struct* b, struct tripod_decomposition_struct
 			//use t->vertex_tripod_assign[i] as i's tripod colour
 			//use t->vertex_tripod_assign[b->al[i][j]] as i's jth neighbour's tripod colour
 			if (t->vertex_tripod_assign[i] == t->vertex_tripod_assign[b->al[i][j]]) pass = 1; //if i's tripod is the same as j's tripod, then ok
-			//printf("j = %d\n", j);
-			//printf("b->al[i][j] = %d\n", b->al[i][j]);
 			for (int k = 0; k < 3; k++){
-				//printf("k = %d\n", k);
-				/*if (t->vertex_tripod_assign[i] >= (b->f) || t->vertex_tripod_assign[b->al[i][j]] >= (b->f)){ //if i <= 2 || if neighbour j is <= 2
-					printf("skip\n");
-					pass = 1;
-				}*/
-				//printf("t->tripod_adjacency_list[t->vertex_tripod_assign[b->al[i][j]]][k] = %d\n", t->tripod_adjacency_list[t->vertex_tripod_assign[b->al[i][j]]][k]);
-				//printf("t->tripod_adjacency_list[t->vertex_tripod_assign[i]][k] = %d\n", t->tripod_adjacency_list[t->vertex_tripod_assign[i]][k]);
-				//printf("yes\n");
-				//if (t->tripod_adjacency_list[t->vertex_tripod_assign[b->al[i][j]]][k] == -1 || t->tripod_adjacency_list[t->vertex_tripod_assign[i]][k] == -1) pass = 1; //if tripod of interest contributed no vertices to H, label it as ok
 				if (t->tripod_adjacency_list[t->vertex_tripod_assign[b->al[i][j]]][k] == t->vertex_tripod_assign[i]) pass = 1; //if i's tripod is in j's tripod adjacency list, then ok
 				if (t->tripod_adjacency_list[t->vertex_tripod_assign[i]][k] == t->vertex_tripod_assign[b->al[i][j]]) pass = 1; //if j's tripod is in i's tripod adjacency list, then ok
 			}
