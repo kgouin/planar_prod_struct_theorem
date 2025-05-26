@@ -9,7 +9,6 @@ int main(){
 	int l = 0;
 	struct rmq_struct s1;
 	clock_t start;
-	double elapsed;
 
 	printf("Creating input %d-element input array...", k);
 	fflush(stdout);

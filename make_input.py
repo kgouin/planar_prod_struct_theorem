@@ -45,21 +45,21 @@ def triangulate(points):
         triangles[t2][triangles[t2].index(-1)] = 0
 
     # Each triangle stores indices of three adjacent triangles
-    print("Writing triangles.txt")
+    #print("Writing triangles.txt")
     with open("triangles.txt", "w") as fp:
         fp.write("{}\n".format(len(triangles)))
         for t in triangles:
             fp.write("{} {} {}\n".format(t[0], t[1], t[2]))
 
     # Each triangle stores indices of three incident vertices
-    print("Writing simplices.txt")
+    #print("Writing simplices.txt")
     with open("simplices.txt", "w") as fp:
         fp.write("{}\n".format(len(simplices)))
         for t in simplices:
             fp.write("{} {} {}\n".format(t[0], t[1], t[2]))
 
     # Each vertex stores its adjacency list
-    print("Writing adjacencies.txt")
+    #print("Writing adjacencies.txt")
     al = succ2al(succ)
     with open("adjacencies.txt", "w") as fp:
         fp.write("{}\n".format(n))
@@ -78,7 +78,7 @@ def triangulate(points):
 
 
     # Each vertex stores the coordinates of the point that defines it
-    print("Writing points.txt")
+    #print("Writing points.txt")
     with open("points.txt", "w") as fp:
         fp.write("{}\n".format(n))
         for p in points:
@@ -93,7 +93,7 @@ def triangulate(points):
 # Boring routines to build a "random" triangulation
 ######################################################################
 def make_triangulation(n, data_type):
-    print("Generating points")
+    #print("Generating points")
     if data_type == 0:
         # Use a set of n-3 random points
         points = [(-1.5,-1.5), (-1.5,3), (3,-1.5)] \
@@ -115,7 +115,7 @@ def make_triangulation(n, data_type):
     n = len(points)
     # random.shuffle(points)
 
-    print("Computing Delaunay triangulation")
+    #print("Computing Delaunay triangulation")
     triangulate(points)
 
 
@@ -140,17 +140,17 @@ def succ2al(succ):
             if v == v0: break
     return al
 
-def usage():
-    print("Computes a tripod decomposition of a Delaunay triangulation")
-    print("Usage: {} [-h] [-c] [-r] [-y] [-w] [-b] [-nv] <n>".format(sys.argv[0]))
-    print("  -h show this message")
-    print("  -c use collinear points")
-    print("  -y use random points in triangle")
-    print("  -r use random points in disk (default)")
-    print("  -w use O(n log n) time algorithm (default)")
-    print("  -b use O(n^2) time algorithm (usually faster)")
-    print("  -nv don't verify correctness of results")
-    print("  <n> the number of points to use (default = 10)")
+#def usage():
+    #print("Computes a tripod decomposition of a Delaunay triangulation")
+    #print("Usage: {} [-h] [-c] [-r] [-y] [-w] [-b] [-nv] <n>".format(sys.argv[0]))
+    #print("  -h show this message")
+    #print("  -c use collinear points")
+    #print("  -y use random points in triangle")
+    #print("  -r use random points in disk (default)")
+    #print("  -w use O(n log n) time algorithm (default)")
+    #print("  -b use O(n^2) time algorithm (usually faster)")
+    #print("  -nv don't verify correctness of results")
+    #print("  <n> the number of points to use (default = 10)")
 
 if __name__ == "__main__":
     n = 0
@@ -158,9 +158,9 @@ if __name__ == "__main__":
     worst_case = True
     verify = True
     for arg in sys.argv[1:]:
-        if arg == '-h':
-            usage()
-        elif arg == '-r':
+        #if arg == '-h':
+            #usage()
+        if arg == '-r':
             data_type = 0   # random
         elif arg == '-c':
             data_type = 1   # collinear
@@ -175,12 +175,12 @@ if __name__ == "__main__":
         else:
             n = int(arg)
 
-    if n <= 0:
-        usage()
-        sys.exit(-1)
+    #if n <= 0:
+        #usage()
+        #sys.exit(-1)
 
     s = ["random", "collinear", "uniform"][data_type]
-    print("Generating {} point set of size {}".format(s, n))
+    #print("Generating {} point set of size {}".format(s, n))
     make_triangulation(n, data_type)
 
     # n = len(succ)
