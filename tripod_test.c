@@ -10,7 +10,6 @@ int main(){
 	struct tripod_decomposition_struct t;
 
 	init(&b, &r, &t);
-
 	decompose(&b, &r, &t);
 
 	/*
@@ -27,6 +26,18 @@ int main(){
 	//bfs tree -> 1 int per line
 	//tripods -> groups of three lines with many ints (vertices) per line
 
+	/* from tripod.c:
+	//write bfs to file
+	FILE *fd;
+	fd = fopen("bfs.txt", "w");
+	if (!fd) exit(0);
+	fprintf(fd, "%d\n", b->v);
+	for (int i = 0; i < b->v; i++){
+		fprintf(fd, "%d\n", b->bt[i]);
+	}
+	fclose(fd);
+	*/
+
 	for (int k = 0; k < ((&b)->v); k++){
 		if (((&t)->vertex_tripod_assign)[k] == -1){
 			printf("error. some vertices are not labeled as belonging to a tripod.\n");
@@ -34,7 +45,7 @@ int main(){
 		}
 	}
 
-	if (!three_tree_test_pt2(&b, &t)) printf("three tree test unsuccessful\n");
+	if (!three_tree_test(&b, &t)) printf("three tree test unsuccessful\n");
 
 	tripod_free(&b, &t);
 	LCA_free(&r);
