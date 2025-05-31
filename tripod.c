@@ -4,9 +4,9 @@
 #include<time.h>
 #include"tripod.h"
 
-void init(struct bfs_struct* b, struct rmq_struct* r, struct tripod_decomposition_struct* t){
+void init(struct bfs_struct* b, struct rmq_struct* r, struct tripod_decomposition_struct* t, char adjacencies[], char simplices[], char triangles[]){
 	//initialize bfs_struct & rmq_struct
-	BFS_init(b);
+	BFS_init(b, adjacencies, simplices, triangles);
 	BFS(b);
 	LCA_init(r, b->ct, (2*(b->f))-1);
 

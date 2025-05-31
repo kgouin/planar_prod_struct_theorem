@@ -4,9 +4,9 @@
 #include<time.h>
 #include"bfs.h"
 
-void BFS_init(struct bfs_struct* s){
+void BFS_init(struct bfs_struct* s, char adjacencies[], char simplices[], char triangles[]){
 	FILE *fd;
-	fd = fopen("adjacencies.txt", "r");
+	fd = fopen(adjacencies, "r");
 	if (!fd) exit(1);
 
 	fscanf(fd, "%d", &(s->v));
@@ -26,24 +26,7 @@ void BFS_init(struct bfs_struct* s){
 
 	fclose(fd);
 
-	fd = fopen("triangles.txt", "r");
-	if (!fd) exit(1);
-
-	fscanf(fd, "%d", &(s->f));
-	s->tri = malloc((s->f)*sizeof(int*));
-	for (int k = 0; k < (s->f); k++){
-		s->tri[k] = malloc(3*sizeof(int));
-	}
-
-	for (int k = 0; k < (s->f); k++){
-		for (int j = 0; j < 3; j++){
-			fscanf(fd, "%d", &s->tri[k][j]);
-		}
-	}
-
-	fclose(fd);
-	
-	fd = fopen("simplices.txt", "r");
+	fd = fopen(simplices, "r");
 	if (!fd) exit(1);
 	
 	fscanf(fd, "%d", &(s->f));
@@ -55,6 +38,23 @@ void BFS_init(struct bfs_struct* s){
 	for (int k = 0; k < (s->f); k++){
 		for (int j = 0; j < 3; j++){
 			fscanf(fd, "%d", &s->sim[k][j]);
+		}
+	}
+
+	fclose(fd);
+
+	fd = fopen(triangles, "r");
+	if (!fd) exit(1);
+
+	fscanf(fd, "%d", &(s->f));
+	s->tri = malloc((s->f)*sizeof(int*));
+	for (int k = 0; k < (s->f); k++){
+		s->tri[k] = malloc(3*sizeof(int));
+	}
+
+	for (int k = 0; k < (s->f); k++){
+		for (int j = 0; j < 3; j++){
+			fscanf(fd, "%d", &s->tri[k][j]);
 		}
 	}
 

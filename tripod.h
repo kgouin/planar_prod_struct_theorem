@@ -16,7 +16,7 @@ struct tripod_decomposition_struct{
 	int tripod_assign_order_index; //index at which we add tripod to t->tripod_assign_order
 };
 
-void init(struct bfs_struct*, struct rmq_struct*, struct tripod_decomposition_struct*);
+void init(struct bfs_struct*, struct rmq_struct*, struct tripod_decomposition_struct*, char[], char[], char[]);
 void decompose(struct bfs_struct*, struct rmq_struct*, struct tripod_decomposition_struct*);
 
 void store_tripod(struct bfs_struct*, struct tripod_decomposition_struct*, int);

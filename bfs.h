@@ -11,6 +11,6 @@ struct bfs_struct{
 	int** ct; //the cotree representation
 };
 
-void BFS_init(struct bfs_struct*);
+void BFS_init(struct bfs_struct*, char[], char[], char[]);
 int* BFS(struct bfs_struct*);
 void BFS_free(struct bfs_struct*);

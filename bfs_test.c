@@ -5,7 +5,7 @@
 #include"bfs.h"
 
 int main(){
-	struct bfs_struct s;
+	/*struct bfs_struct s;
 	BFS_init(&s);
 	BFS(&s);
 	printf("\n");
@@ -39,5 +39,5 @@ int main(){
 		printf("%d ", s.pin[i]);
 	}
 	printf("\n");
-	BFS_free(&s);
+	BFS_free(&s);*/
 }
