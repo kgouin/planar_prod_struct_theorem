@@ -146,8 +146,6 @@ void trichromatic_tripod(struct bfs_struct* b, struct rmq_struct* r, struct trip
 
 	t->face_tripod_assign[sp] = sp; //keep track of sperner triangles
 
-	if (f1 == sp && f2 == sp && f3 == sp) return; //no subproblems exist
-
 	trichromatic_orient_subproblems(b, t, sp, f1, f2, f3);
 
 	trichromatic_decompose(b, r, t, sp, f1, f2, f3);
@@ -171,7 +169,7 @@ void trichromatic_orient_subproblems(struct bfs_struct* b, struct tripod_decompo
 
 	int double_match = 0;
 	for (int i = 0; i < 3; i++){ //look at all three vertices of our f triangle
-		if (t->vertex_tripod_assign[b->sim[f[k]][i]] == leg_colours[0]){
+		if (t->vertex_tripod_assign[b->sim[f[k]][i]] == leg_colours[0]){ //this can be simpler with portal edges
 			for (int j = 0; j < 3; j++){
 				if (t->vertex_tripod_assign[b->sim[f[k]][j]] == leg_colours[1]){
 					double_match = 1;
@@ -601,7 +599,7 @@ int three_tree_test(struct bfs_struct* b, struct tripod_decomposition_struct* t)
 
 	int pass = 0;
 
-	for (int i = 0; i < (b->v); i++){ //go through all vertices that aren't adjacent to the outer face (for the moment)
+	for (int i = 0; i < (b->v); i++){ //go through all vertices
 		for (int j = 0; j < (b->n)[i]; j++){ //look at adjacency list of each vertex, using (b->n)[i] as the number of neighbours of vertex i
 			//use b->al[i][j] as i's jth neighbour
 			//use t->vertex_tripod_assign[i] as i's tripod colour
