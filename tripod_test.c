@@ -23,7 +23,6 @@ int main(int argc, char **argv){
 	init(&b, &r, &t, argv[1], argv[2], argv[3]);
 	decompose(&b, &r, &t);
 
-	/*
 	for (int k = 0; k < ((&b)->v); k++){
 		if (((&t)->vertex_tripod_assign)[k] == -1){
 			printf("error. some vertices are not labeled as belonging to a tripod.\n");
@@ -39,7 +38,6 @@ int main(int argc, char **argv){
 	}
 
 	if (!three_tree_test(&b, &t)) printf("three tree test unsuccessful\n");
-	*/
 
 	//write bfs tree to file (1 int per line, b.v lines)
 	char* complete_bfs_tree_file_name;
