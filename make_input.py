@@ -45,21 +45,21 @@ def triangulate(points):
         triangles[t2][triangles[t2].index(-1)] = 0
 
     # Each triangle stores indices of three adjacent triangles
-    print("Writing triangles.txt")
+    #print("Writing triangles.txt")
     with open("triangles.txt", "w") as fp:
         fp.write("{}\n".format(len(triangles)))
         for t in triangles:
             fp.write("{} {} {}\n".format(t[0], t[1], t[2]))
 
     # Each triangle stores indices of three incident vertices
-    print("Writing simplices.txt")
+    #print("Writing simplices.txt")
     with open("simplices.txt", "w") as fp:
         fp.write("{}\n".format(len(simplices)))
         for t in simplices:
             fp.write("{} {} {}\n".format(t[0], t[1], t[2]))
 
     # Each vertex stores its adjacency list
-    print("Writing adjacencies.txt")
+    #print("Writing adjacencies.txt")
     al = succ2al(succ)
     with open("adjacencies.txt", "w") as fp:
         fp.write("{}\n".format(n))
@@ -78,7 +78,7 @@ def triangulate(points):
 
 
     # Each vertex stores the coordinates of the point that defines it
-    print("Writing points.txt")
+    #print("Writing points.txt")
     with open("points.txt", "w") as fp:
         fp.write("{}\n".format(n))
         for p in points:
@@ -93,7 +93,7 @@ def triangulate(points):
 # Boring routines to build a "random" triangulation
 ######################################################################
 def make_triangulation(n, data_type):
-    print("Generating points")
+    #print("Generating points")
     if data_type == 0:
         # Use a set of n-3 random points
         points = [(-1.5,-1.5), (-1.5,3), (3,-1.5)] \
@@ -115,7 +115,7 @@ def make_triangulation(n, data_type):
     n = len(points)
     # random.shuffle(points)
 
-    print("Computing Delaunay triangulation")
+    #print("Computing Delaunay triangulation")
     triangulate(points)
 
 
@@ -180,7 +180,7 @@ if __name__ == "__main__":
         sys.exit(-1)
 
     s = ["random", "collinear", "uniform"][data_type]
-    print("Generating {} point set of size {}".format(s, n))
+    #print("Generating {} point set of size {}".format(s, n))
     make_triangulation(n, data_type)
 
     # n = len(succ)

@@ -231,26 +231,30 @@ void trichromatic_decompose(struct bfs_struct* b, struct rmq_struct* r, struct t
 			less_intrusive_portal_helper_op(b, t, portals, v_x_op[i], 0);
 			less_intrusive_portal_helper_r_l(b, t, v_x_r[(i+1)%3], v_x_next[(i+1)%3], 1);
 			less_intrusive_portal_helper_r_l(b, t, v_x_l[i], v_x[i], 2);
-			trichromatic_tripod(b, r, t, v_x_op[i], v_x_r[(i+1)%3], v_x_l[i]);
+			//trichromatic_tripod(b, r, t, v_x_op[i], v_x_r[(i+1)%3], v_x_l[i]);
+			trichromatic_tripod(b, r, t, t->portals[0][0], v_x_r[(i+1)%3], v_x_l[i]);
 		}
 		else if (t->vertex_tripod_assign[v_x[i]] == sp && t->vertex_tripod_assign[v_x[(i+1)%3]] != sp){ //leg i is non-empty && leg (i+1)%3 is empty
 			less_intrusive_portal_helper_op(b, t, portals, v_x_op[i], 0);
 			less_intrusive_portal_helper_mirror(b, t, sp, v_x_mirror[i], 1);
 			less_intrusive_portal_helper_r_l(b, t, v_x_l[i], v_x[i], 2);
-			trichromatic_tripod(b, r, t, v_x_op[i], v_x_mirror[i], v_x_l[i]);
+			//trichromatic_tripod(b, r, t, v_x_op[i], v_x_mirror[i], v_x_l[i]);
+			trichromatic_tripod(b, r, t, t->portals[0][0], v_x_mirror[i], v_x_l[i]);
 		}
 		else if (t->vertex_tripod_assign[v_x[i]] != sp && t->vertex_tripod_assign[v_x[(i+1)%3]] == sp){ //leg i is empty && leg (i+1)%3 is non-empty
 			less_intrusive_portal_helper_op(b, t, portals, v_x_op[i], 0);
 			less_intrusive_portal_helper_r_l(b, t, v_x_r[(i+1)%3], v_x_next[(i+1)%3], 1);
 			less_intrusive_portal_helper_mirror(b, t, sp, v_x_mirror[i], 2);
-			trichromatic_tripod(b, r, t, v_x_op[i], v_x_r[(i+1)%3], v_x_mirror[i]);
+			//trichromatic_tripod(b, r, t, v_x_op[i], v_x_r[(i+1)%3], v_x_mirror[i]);
+			trichromatic_tripod(b, r, t, t->portals[0][0], v_x_r[(i+1)%3], v_x_mirror[i]);
 		}
 		else if (t->vertex_tripod_assign[v_x[i]] != sp && t->vertex_tripod_assign[v_x[(i+1)%3]] != sp){ //leg i is empty && leg (i+1)%3 is empty
 			if (t->face_tripod_assign[v_x_op[i]] == -1){
 				less_intrusive_portal_helper_op(b, t, portals, v_x_op[i], 0);
 				less_intrusive_portal_helper_mirror(b, t, sp, v_x_mirror[i], 1);
 				less_intrusive_portal_helper_empty(t, 2);
-				bichromatic_tripod( b, r, t, v_x_op[i], v_x_mirror[i]);
+				//bichromatic_tripod( b, r, t, v_x_op[i], v_x_mirror[i]);
+				bichromatic_tripod( b, r, t, t->portals[0][0], v_x_mirror[i]);
 			}
 		}
 	}
